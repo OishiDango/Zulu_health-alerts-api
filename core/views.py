@@ -36,6 +36,9 @@ def get_alerts(request):
     # retrieves all alerts from database
     query_set = Alert.objects.all().order_by("-date")
 
+    if alert_id:
+        query_set = query_set.filter(external_id=alert_id)
+
     def serialise(alert):
         return {
             "id": alert.external_id,
