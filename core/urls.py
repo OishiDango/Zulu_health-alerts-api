@@ -4,5 +4,6 @@ from . import views
 urlpatterns = [
     path('hello/', views.hello_world),
     path('search-def/', views.simple_scrapy_test, name='search_def'),
+    path('alerts', views.get_alerts),
 ]
 
