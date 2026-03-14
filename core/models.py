@@ -13,3 +13,4 @@ class Alert(models.Model):
     locations = models.JSONField(default=list)
 
     def __str__(self):
+        return f"{self.external_id} - {self.title[:50]}"
