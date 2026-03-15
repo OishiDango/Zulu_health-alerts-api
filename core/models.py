@@ -13,4 +13,3 @@ class Alert(models.Model):
 
     def __str__(self):
         return f"{self.external_id} - {self.title[:50]}"
-    
