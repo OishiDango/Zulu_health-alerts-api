@@ -8,4 +8,3 @@ urlpatterns = [
     path('alerts', views.get_alerts),
     path('stats/regions', stats_regions, name="stats-regions")
 ]
-
