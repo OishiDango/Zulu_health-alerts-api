@@ -5,5 +5,6 @@ from .views import stats_regions
 urlpatterns = [
     path('hello/', views.hello_world),
     path('search-def/', views.simple_scrapy_test, name='search_def'),
+    path('alerts', views.get_alerts),
     path('stats/regions', stats_regions, name="stats-regions")
 ]
