@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 
 # JSON schema for an alert
 class Alert(models.Model):
@@ -14,3 +13,4 @@ class Alert(models.Model):
 
     def __str__(self):
         return f"{self.external_id} - {self.title[:50]}"
+    
