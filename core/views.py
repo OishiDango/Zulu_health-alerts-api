@@ -168,9 +168,9 @@ def get_alerts(request):
 
     return Response(
         {
-            "alerts": alerts_out,
             "from": from_date.isoformat() if from_date else None,
             "to": to_date.isoformat() if to_date else None,
+            "alerts": alerts_out,
         },
         status=status.HTTP_200_OK,
     )
