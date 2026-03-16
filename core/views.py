@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from core.models import Alert
+from core.ai_service.region_summary import generate_summary_entry
 
 
 def filter_alerts(params, default_days=365):
@@ -182,4 +183,70 @@ def simple_scrapy_test(request):
     except subprocess.CalledProcessError as e:
         return Response(
             {"error": "Scrapy failed", "detail": e.output.decode()}, status=500
+        )
+
+def serialise_alert_for_ai(alert):
+    return {
+        "fields": {
+            "external_id": alert.external_id,
+            "date": alert.date.isoformat(),
+            "title": alert.title,
+            "regions": alert.regions,
+            "diseases": alert.diseases,
+            "species": alert.species,
+            "locations": alert.locations,
+        }
+    }
+
+
+@api_view(["GET"])
+def region_summary_view(request):
+    location = request.query_params.get("location")
+    window = request.query_params.get("window")
+    raw_from = request.query_params.get("from")
+    raw_to = request.query_params.get("to")
+
+    if not location:
+        return Response(
+            {"error": "location_chain or location_str is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    start_date = parse_date(raw_from) if raw_from else None
+    end_date = parse_date(raw_to) if raw_to else None
+
+    if raw_from and start_date is None:
+        return Response(
+            {"error": "invalid from date, expected YYYY-MM-DD"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if raw_to and end_date is None:
+        return Response(
+            {"error": "invalid to date, expected YYYY-MM-DD"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    query_set = Alert.objects.all().order_by("-date")
+    database = [serialise_alert_for_ai(alert) for alert in query_set]
+
+    try:
+        result = generate_summary_entry(
+            database=database,
+            location_str=location,
+            window=window,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return Response(result, status=status.HTTP_200_OK)
+
+    except ValueError as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except RuntimeError as e:
+        return Response(
+            {"error": "AI summary generation failed", "detail": str(e)},
+            status=status.HTTP_502_BAD_GATEWAY,
         )
