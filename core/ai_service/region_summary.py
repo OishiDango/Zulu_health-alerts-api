@@ -257,39 +257,10 @@ def generate_summary_entry(
 
 if __name__ == "__main__":
 
-    #     # # print(str(filter_start_date("1month")))
-    # file = r"seng3011-Zulu\scraper\scraper\alerts.json"
-
     file = BASE_DIR2 / "scraper" / "scraper" / "alerts.json"
     with open(file, "r", encoding="utf-8") as f:
         database = json.load(f)
-    #     #     # print(database)
-    #     #     start_date = filter_start_date("3month")
-    #     #     print(start_date)
-    #     #     database = filter_date(start_date, end_date=None, database=database)
-    #     #     location_chain = find_by_every_location(database, "Hong Kong")
-    #     #     print(location_chain)
-    #     #     exact_match = find_by_exact_location(database, location_chain[0])
-    #     #     print(exact_match)
-    #     #     print(len(exact_match))
-    #     #     title_match = find_related_location(database, location_chain[0], exact_match)
-    #     #     print(title_match)
-    #     #     print(len(title_match))
 
-    #     with open(file, "r") as f:
-    #         database = json.load(f)
-    #     # result = filter_entry(window="3month", location_str="Hong Kong", database=database)
-    #     # print(result)
-    #     # diseases = extract_disease_name_from_result(result)
-    #     # print(diseases)
-    #     # # print(search_disease_info_from_JSON(diseases))
-
-    #     # API_KEY = "AIzaSyCa6LB5tin7aK604YEsL9M3wQedlLptmE8"
-
-    #     # AI = region_summary_api.GeminiSummary(API_KEY, model_id="gemini-3-flash-preview")
-    #     # location_chain = find_by_every_location(database, "Hong Kong")
-    #     # response = AI.region_summary(result, location_chain, {} )
-    #     # # print(response)
     generate_summary_entry(
         window="3month", location_str="New South Wales", database=database
     )
