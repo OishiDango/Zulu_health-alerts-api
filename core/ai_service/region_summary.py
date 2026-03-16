@@ -256,6 +256,8 @@ def generate_summary_entry(
         return {"error": "API KEY is Missing"}
 
     AI = region_summary_api.GeminiSummary(API_KEY, model_id="gemini-3-flash-preview")
+    if not location_chain:
+        return {"error": "Location not found"}
     response = AI.region_summary(result, location_chain, diseases)
     return {"summary": response, "location_chain": location_chain}
 
