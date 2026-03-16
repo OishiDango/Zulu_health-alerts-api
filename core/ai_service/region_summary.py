@@ -3,13 +3,15 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import os
-import region_summary_api
+# import region_summary_api
+from . import region_summary_api
 
 BASE_DIR = Path(__file__).resolve().parent
 DISEASE_INFO_JSON = BASE_DIR / "disease_info.json"
 
 BASE_DIR2 = Path(__file__).resolve().parents[2]
 
+# $env:GEMINI_API_KEY="AIzaSyCa6LB5tin7aK604YEsL9M3wQedlLptmE8"
 
 def filter_start_date(window:str, today:date|None = None) -> date:
     if today is None:
