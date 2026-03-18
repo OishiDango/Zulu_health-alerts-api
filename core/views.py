@@ -141,6 +141,7 @@ def home(request):
 
 
 @swagger_auto_schema(
+    method="get",
     operation_description="Return outbreak alert counts grouped by region using the same filters as the alerts endpoint.",
     tags=["stats"],
     manual_parameters=common_filter_parameters,
@@ -188,6 +189,7 @@ def stats_regions(request):
 
 
 @swagger_auto_schema(
+    method="get",
     operation_description="Return the most frequently reported diseases using the same filters as the alerts endpoint.",
     tags=["stats"],
     manual_parameters=common_filter_parameters,
@@ -235,6 +237,7 @@ def stats_diseases(request):
 
 
 @swagger_auto_schema(
+    method="get",
     operation_description="Retrieve outbreak alerts with optional filters.",
     tags=["alerts"],
     manual_parameters=common_filter_parameters,
@@ -268,6 +271,7 @@ timeseries_parameters = [
 ]
 
 @swagger_auto_schema(
+    method="get",
     operation_description="Return alert counts aggregated over time using the same filters as the alerts endpoint.",
     tags=["stats"],
     manual_parameters=timeseries_parameters,
