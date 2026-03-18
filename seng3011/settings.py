@@ -8,6 +8,11 @@ SECRET_KEY = os.environ.get(
     "dev-only-secret",
 )
 
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,
+}
+
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
@@ -61,6 +66,9 @@ if os.environ.get("DB_HOST"):
             "PASSWORD": os.environ.get("DB_PASSWORD"),
             "HOST": os.environ.get("DB_HOST"),
             "PORT": os.environ.get("DB_PORT", "5432"),
+            "OPTIONS": {
+                "sslmode": "require",
+            },
         }
     }
 else:

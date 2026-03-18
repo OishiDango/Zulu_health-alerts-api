@@ -36,21 +36,32 @@ class Command(BaseCommand):
 
         for item in data:
             fields = item.get("fields", {})
-            external_id = fields.get("external_id")
 
-            if not external_id or external_id in existing_ids:
+            external_id = str(fields.get("external_id") or "").strip()
+            date = fields.get("date")
+            title = str(fields.get("title") or "").strip()
+            diseases = fields.get("diseases") or []
+            species = fields.get("species") or []
+            regions = fields.get("regions") or []
+            locations = fields.get("locations") or []
+
+            if not external_id or not date or not title:
+                skipped += 1
+                continue
+
+            if external_id in existing_ids:
                 skipped += 1
                 continue
 
             batch.append(
                 Alert(
                     external_id=external_id,
-                    date=fields.get("date"),
-                    title=fields.get("title", ""),
-                    diseases=fields.get("diseases", []),
-                    species=fields.get("species", []),
-                    regions=fields.get("regions", []),
-                    locations=fields.get("locations", []),
+                    date=date,
+                    title=title,
+                    diseases=diseases,
+                    species=species,
+                    regions=regions,
+                    locations=locations,
                 )
             )
             existing_ids.add(external_id)
