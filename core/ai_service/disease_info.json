@@ -1,0 +1,37 @@
+{
+  "Avian Influenza": {
+    "severity": "high",
+    "severity_reason": "High mortality rate and severe respiratory failure.",
+    "risk_of_exposure": "low",
+    "exposure_reason": "Requires direct contact with infected birds or poultry.",
+    "confidence": "high"
+  },
+  "Hepatitis E": {
+    "severity": "medium",
+    "severity_reason": "Acute liver inflammation; especially dangerous during pregnancy.",
+    "risk_of_exposure": "low",
+    "exposure_reason": "Ingestion of contaminated water or undercooked food.",
+    "confidence": "high"
+  },
+  "Leptospirosis": {
+    "severity": "medium",
+    "severity_reason": "May cause kidney failure, meningitis, or liver damage.",
+    "risk_of_exposure": "low",
+    "exposure_reason": "Skin contact  with water contaminated by animal urine.",
+    "confidence": "high"
+  },
+  "Measles": {
+    "severity": "high",
+    "severity_reason": "High risk of pneumonia, encephalitis, and hospitalization.",
+    "risk_of_exposure": "high",
+    "exposure_reason": "Highly contagious via respiratory droplets in crowded areas.",
+    "confidence": "high"
+  },
+  "Myiasis": {
+    "severity": "low",
+    "severity_reason": "Larval infestation of tissue causing pain and inflammation.",
+    "risk_of_exposure": "low",
+    "exposure_reason": "Contact with fly larvae in soil or clothing.",
+    "confidence": "high"
+  }
+}
