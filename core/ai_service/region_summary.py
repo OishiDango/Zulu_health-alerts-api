@@ -77,6 +77,7 @@ def find_by_every_location(database: list, location_str: str | None) -> list:
 
     return result
 
+
 def find_by_exact_location(database: list, location_chain: list) -> list:
     results = []
     for alert in database:
