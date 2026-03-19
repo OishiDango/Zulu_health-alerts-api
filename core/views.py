@@ -355,6 +355,39 @@ def serialise_alert_for_ai(alert):
     }
 
 
+@swagger_auto_schema(
+    method="get",
+    operation_description="Generate an AI summary for a region or location.",
+    tags=["summary"],
+    manual_parameters=[
+        openapi.Parameter(
+            "location",
+            openapi.IN_QUERY,
+            description="Location string to summarise",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+        openapi.Parameter(
+            "window",
+            openapi.IN_QUERY,
+            description="Optional time window",
+            type=openapi.TYPE_STRING,
+        ),
+        openapi.Parameter(
+            "from",
+            openapi.IN_QUERY,
+            description="Start date in YYYY-MM-DD format",
+            type=openapi.TYPE_STRING,
+        ),
+        openapi.Parameter(
+            "to",
+            openapi.IN_QUERY,
+            description="End date in YYYY-MM-DD format",
+            type=openapi.TYPE_STRING,
+        ),
+    ],
+    responses={200: "Summary generated successfully."},
+)
 @api_view(["GET"])
 def region_summary_view(request):
     location = request.query_params.get("location")
