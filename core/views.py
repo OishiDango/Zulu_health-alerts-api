@@ -19,8 +19,6 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from core.models import Alert
-from core.ai_service.region_summary import generate_summary_entry
-from core.ai_service.disease_severity import generate_disease_severity_entry
 
 common_filter_parameters = [
     openapi.Parameter(
@@ -199,6 +197,8 @@ def stats_regions(request):
 )
 @api_view(["GET"])
 def stats_diseases(request):
+    from core.ai_service.disease_severity import generate_disease_severity_entry
+
     query_set, from_date, to_date = filter_alerts(
         request.query_params,
         default_days=30,
@@ -390,6 +390,8 @@ def serialise_alert_for_ai(alert):
 )
 @api_view(["GET"])
 def region_summary_view(request):
+    from core.ai_service.region_summary import generate_summary_entry
+
     location = request.query_params.get("location")
     window = request.query_params.get("window")
     raw_from = request.query_params.get("from")
