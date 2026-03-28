@@ -44,6 +44,121 @@
   overflow-y: auto;
 }
 
+.panelTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  margin: 0 0 12px 0;
+}
+
+.diseaseCard {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.diseaseCard:hover {
+  background: #f0f4ff;
+}
+
+.diseaseCardSelected {
+  background: #e8efff;
+  border-color: #5b7fe8;
+}
+
+.diseaseName {
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  font-size: 0.95rem;
+}
+
+.diseaseMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.emptyState {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 0.95rem;
+}
+
+.detailTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.detailCount {
+  color: #888;
+  font-size: 0.9rem;
+  margin: 0 0 20px 0;
+}
+
+.alertCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.alertDate {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 6px 0;
+}
+
+.alertTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.alertMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alertLocations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.locationTag {
+  background: #f0f4ff;
+  color: #4466cc;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.alertSpecies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.speciesTag {
+  background: #f5f5f5;
+  color: #555;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
 .notFound {
   padding: 24px;
 }
