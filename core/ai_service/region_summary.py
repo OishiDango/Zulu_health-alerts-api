@@ -4,8 +4,8 @@ from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import os
 
-# import region_summary_api
-from . import region_summary_api
+import region_summary_api
+# from . import region_summary_api
 
 BASE_DIR = Path(__file__).resolve().parent
 DISEASE_INFO_JSON = BASE_DIR / "disease_info.json"
@@ -213,8 +213,8 @@ def extract_disease_name_from_result(result: list):
 
 
 def search_disease_info_from_JSON(result: list):
-    disease_info_json = "disease_info.json"
-    with open(disease_info_json, "r", encoding="utf-8") as f:
+    # disease_info_json = "disease_info.json"
+    with open(DISEASE_INFO_JSON, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     disease_names = extract_disease_name_from_result(result)
@@ -248,7 +248,7 @@ def generate_summary_entry(
     if not location_chain:
         return {"error": "relevant location chain not found in dataset"}
     
-    diseases = extract_disease_name_from_result(result)
+    diseases =  search_disease_info_from_JSON(result)
 
     API_KEY = os.getenv("GEMINI_API_KEY")
     if API_KEY is None:
@@ -257,6 +257,7 @@ def generate_summary_entry(
     AI = region_summary_api.GeminiSummary(API_KEY, model_id="gemini-3-flash-preview")
     # if not location_chain:
     #     return {"error": "Location not found"}
+
     response = AI.region_summary(result, location_chain, diseases)
     return {"summary": response, "location_chain": location_chain}
 

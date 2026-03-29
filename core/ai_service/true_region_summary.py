@@ -53,7 +53,7 @@ def generate_region_summary_entry(
 
     # print(exact_match)
 
-    diseases = region_summary.extract_disease_name_from_result(exact_match)
+    diseases = region_summary.search_disease_info_from_JSON(exact_match)
 
     API_KEY = os.getenv("GEMINI_API_KEY")
     if API_KEY is None:
