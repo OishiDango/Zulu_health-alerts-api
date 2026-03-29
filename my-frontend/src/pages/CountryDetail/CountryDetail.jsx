@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
-import { countryData } from "../../data/mockData";
+import australiaData from "../../data/australiaData";
 
 function CountryDetail() {
   const { countryCode } = useParams();
-  const data = countryData[countryCode];
+  const data = australiaData;
 
   if (!data) {
     return <div>Country not found.</div>;
