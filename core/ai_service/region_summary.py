@@ -186,7 +186,7 @@ def filter_entry(
     if location_chain is None:
         chains = find_by_every_location(database, location_str)
         if not chains:
-            return [], None
+            return ["no location chain found"], None
         location_chain = chains[0]
 
     exact_match = find_by_exact_location(database, location_chain)
@@ -244,6 +244,10 @@ def generate_summary_entry(
         location_str=location_str,
         database=database,
     )
+
+    if not location_chain:
+        return {"error": "relevant location chain not found in dataset"}
+    
     diseases = extract_disease_name_from_result(result)
 
     API_KEY = os.getenv("GEMINI_API_KEY")
@@ -251,8 +255,8 @@ def generate_summary_entry(
         return {"error": "API KEY is Missing"}
 
     AI = region_summary_api.GeminiSummary(API_KEY, model_id="gemini-3-flash-preview")
-    if not location_chain:
-        return {"error": "Location not found"}
+    # if not location_chain:
+    #     return {"error": "Location not found"}
     response = AI.region_summary(result, location_chain, diseases)
     return {"summary": response, "location_chain": location_chain}
 
