@@ -4,7 +4,7 @@ import Navigation from "../Navigation";
 import styles from "./AlertListPage.module.css";
 
 const AlertListPage = ({ title, data }) => {
-  const [selectedAlert, setSelectedAlert] = useState(null);
+  const [selectedAlert, setSelectedAlert] = useState(data.alerts[0] ?? null);
   const navigate = useNavigate();
 
   const alerts = data.alerts;
