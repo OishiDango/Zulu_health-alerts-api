@@ -23,7 +23,6 @@ def check_refresh_due(
     return refresh_date <= today
 
 
-
 def initialize_refresh_date(
         start_date: date | None = None,
         date_to_refresh: int = 14
