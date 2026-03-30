@@ -262,6 +262,29 @@ def generate_summary_entry(
     return {"summary": response, "location_chain": location_chain}
 
 
+def find_by_location_prefix(database: list, prefix_chain: list) -> list:
+    results = []
+    unique = set()
+
+    for alert in database:
+        external_id = alert["fields"]["external_id"]
+        if external_id in unique:
+            continue
+
+        locations = alert.get("fields", {}).get("locations", [])
+        for chain in locations:
+            if (
+                isinstance(chain, list)
+                and len(chain) >= len(prefix_chain)
+                and chain[:len(prefix_chain)] == prefix_chain
+            ):
+                results.append(alert)
+                unique.add(external_id)
+                break
+
+    return results
+
+
 if __name__ == "__main__":
 
     file = BASE_DIR2 / "scraper" / "scraper" / "alerts.json"

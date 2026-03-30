@@ -10,7 +10,7 @@ import random
 # from . import region_summary
 
 import date_tools
-# import region_summary
+import region_summary
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -138,16 +138,20 @@ def extract_all_countries(database:list[dict]) -> dict:
 
 
 def initialize_risk_level_json(database:list[dict]) -> None:
-    initialize = {}
-    initialize["meta"]["date_to_refresh"] = DEFAULT_REFRESH_DATE
-    today = date.today().isoformat()
-    initialize["meta"]["last_processed_date"] = today
+    initialize = {
+    "meta": {
+        "date_to_refresh": DEFAULT_REFRESH_DATE,
+        "last_processed_date": date.today().isoformat(),
+    },
+    "regions": {}
+    }
+
 
     countries = extract_all_countries(database)
     for country, info in countries.items():
         ttd = random.randint(1, DEFAULT_REFRESH_DATE)
         next_refresh = date_tools.initialize_refresh_date(date.today(), DEFAULT_REFRESH_DATE)
-        initialize[country] = {
+        initialize["regions"][country] = {
             "risk_level": None,
             "reason": None,
             "supporting_alert_ids": [],
@@ -174,9 +178,20 @@ def get_new_alerts(database:list[dict], start_date:date) -> list:
 
     return new_alerts
 
+def filter_entry(country:str, database : list, window: str) -> list:
+    end_date = date.today()
+    start_date = region_summary.filter_start_date(window, end_date)
+    database = region_summary.filter_date(start_date, end_date, database)
+    location_chain = [country]
+    country_match = region_summary.find_by_location_prefix(database, location_chain)
+    return country_match
+
+
 
 def update_risk_level_after_fetch(database:list[dict]) -> dict:
-    risk_level = load_json(RISK_LEVEL_JSON)
+    risk_level = load_json(RISK_LEVEL_JSON, None)
+    if not risk_level:
+        return {"error_msg":"error in reading RISK LEVEL JSON"}
     start_date = risk_level.get("meta", {}).get("last_processed_date", "")
     try:
         start_date = date.fromisoformat(start_date)
@@ -191,8 +206,8 @@ def update_risk_level_after_fetch(database:list[dict]) -> dict:
         last_alert_date = info.get("last_alert_at", "")
         if not isinstance(country, str):
             continue
-        relevant_alerts, location_chain = region_summary.filter_entry(
-            window="3month", location_str=country, database=database
+        relevant_alerts= filter_entry(
+            window="3month", country=country, database=database
         )
         
     return {}
