@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import styles from "./Navigation.module.css";
+import SearchBar from "./SearchBar";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -27,55 +28,61 @@ const Navigation = () => {
   return (
     <nav className={styles.nav}>
       <div className={styles.navContent}>
-        {/* Logo */}
-        <div className={styles.logoSection} onClick={() => navigate("/")}>
-          <img src={logo} alt="logo" className={styles.logo} />
-          <span className={styles.logoText}>Health Alert</span>
+        {/* left */}
+        <div className={styles.leftSection}>
+          <div className={styles.logoSection} onClick={() => navigate("/")}>
+            <img src={logo} alt="logo" className={styles.logo} />
+            <span className={styles.logoText}>Health Alert</span>
+          </div>
+          <SearchBar />
         </div>
 
-        {/* Dropdown Menu */}
-        <div className={styles.dropdownContainer} ref={dropdownRef}>
+        {/* 右 */}
+        <div className={styles.rightSection}>
           <button
-            type="button"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={styles.menuButton}
+            className={styles.navButton}
+            onClick={() => navigate("/search")}
           >
-            ☰
+            Search
           </button>
 
-          {dropdownOpen && (
-            <div className={styles.dropdownMenu}>
-              <button
-                onClick={() => {
-                  navigate("/");
-                  setDropdownOpen(false);
-                }}
-                className={styles.dropdownItem}
-              >
-                Home
-              </button>
+          <button className={styles.navButton} onClick={() => navigate("/")}>
+            Home
+          </button>
 
-              <button
-                onClick={() => {
-                  navigate("/login");
-                  setDropdownOpen(false);
-                }}
-                className={styles.dropdownItem}
-              >
-                Log in
-              </button>
+          <div className={styles.dropdownContainer} ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className={styles.menuButton}
+            >
+              ☰
+            </button>
 
-              <button
-                onClick={() => {
-                  navigate("/register");
-                  setDropdownOpen(false);
-                }}
-                className={styles.dropdownItem}
-              >
-                Sign up
-              </button>
-            </div>
-          )}
+            {dropdownOpen && (
+              <div className={styles.dropdownMenu}>
+                <button
+                  onClick={() => {
+                    navigate("/login");
+                    setDropdownOpen(false);
+                  }}
+                  className={styles.dropdownItem}
+                >
+                  Log in
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/signup");
+                    setDropdownOpen(false);
+                  }}
+                  className={styles.dropdownItem}
+                >
+                  Sign up
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>
