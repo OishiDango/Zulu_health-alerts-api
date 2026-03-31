@@ -10,158 +10,50 @@ import os
 os.getenv("GEMINI_API_KEY")
 
 
-class GeminiSummary:
+class GeminiRiskLevel:
     response_schema = {
         "type": "object",
         "description": (
-            "Structured travel-risk summary based only on the provided"
-            " outbreak alerts and disease metadata for the requested location context"
+            "Structured country-level infectious disease travel-risk assessment "
+            "based only on the provided outbreak alerts and disease metadata."
         ),
         "additionalProperties": False,
         "properties": {
-            "overall_assessment": {
-                "type": "object",
+            "risk_level": {
+                "type": "string",
                 "description": (
-                    "High-level assessment for the requested location. "
-                    "This should give the main travel-risk picture in a short"
-                    " paragraph and explain the overall level briefly and objectively"
+                    "Overall country-level travel-risk level based only on the "
+                    "provided recent alert evidence and disease metadata."
                 ),
-                "additionalProperties": False,
-                "properties": {
-                    "location": {
-                        "type": "array",
-                        "description": "Copy the exact location from the input context",
-                        "items": {"type": "string"},
-                        "minItems": 1,
-                    },
-                    "summary": {
-                        "type": "string",
-                        "description": (
-                            "A concise but slightly detailed summary paragraph"
-                            " for the requested location It should synthesize "
-                            "recent/repeated alert signals, disease metadata, "
-                            "and travel relevance for short- and medium-term visitors"
-                        ),
-                    },
-                    "overall_risk_level": {
-                        "type": "string",
-                        "description": (
-                            "Overall travel-risk level for the requested "
-                            "location based only on the provided alerts "
-                            "and disease metadata: choose High if there is any recent"
-                            " alert with high severity or high exposure, or if there "
-                            "are multiple recent alerts; choose Medium if these "
-                            "conditions are met but the alerts are not recent; choose "
-                            "Low if there are no alerts, or if the alerts are not"
-                            " recent and do not involve high severity or high exposure."
-                        ),
-                        "enum": ["high", "medium", "low"],
-                    },
-                    "key_reasons": {
-                        "type": "array",
-                        "description": (
-                            "Main reasons supporting the overall assessment, "
-                            "you should mention concrete drivers such as recency,"
-                            " repeated alerts, strong exposure relevance, or strong "
-                            "severity relevance"
-                        ),
-                        "items": {"type": "string"},
-                        "minItems": 1,
-                        "maxItems": 4,
-                    },
-                },
-                "required": [
-                    "location",
-                    "summary",
-                    "overall_risk_level",
-                    "key_reasons",
-                ],
+                "enum": ["low", "medium", "high"],
             },
-            "major_threats": {
-                "type": "object",
+            "reason": {
+                "type": "string",
                 "description": (
-                    "Current main threats for the requested "
-                    "location in the travel context."
+                    "A short and objective explanation for why "
+                    "the selected risk level was assigned to this country."
                 ),
-                "additionalProperties": False,
-                "properties": {
-                    "high_exposure": {
-                        "type": "array",
-                        "items": {"$ref": "#/$defs/threat_item"},
-                    },
-                    "high_severity": {
-                        "type": "array",
-                        "items": {"$ref": "#/$defs/threat_item"},
-                    },
-                },
-                "required": ["high_exposure", "high_severity"],
+                "minLength": 1,
+                "maxLength": 15,
             },
-            "potential_threats": {
-                "type": "object",
-                "description": (
-                    "Relevant but less central threats " "for the requested location."
-                ),
-                "additionalProperties": False,
-                "properties": {
-                    "high_exposure": {
-                        "type": "array",
-                        "items": {"$ref": "#/$defs/threat_item"},
-                    },
-                    "high_severity": {
-                        "type": "array",
-                        "items": {"$ref": "#/$defs/threat_item"},
-                    },
-                    "other_relevant_threats": {
-                        "type": "array",
-                        "items": {"$ref": "#/$defs/threat_item"},
-                    },
-                },
-                "required": [
-                    "high_exposure",
-                    "high_severity",
-                    "other_relevant_threats",
-                ],
-            },
-            "ignored_alerts": {
+            "supporting_alert_ids": {
                 "type": "array",
                 "description": (
-                    "Alerts ignored only because they are "
-                    "clearly outside the requested location context."
+                    "The 5 most relevant alert external ids that directly support "
+                    "the assigned country risk level."
                 ),
                 "items": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {
-                        "external_id": {"type": "string"},
-                        "reason": {"type": "string"},
-                    },
-                    "required": ["external_id", "reason"],
+                    "type": "string",
+                    "description": "An alert external id used as supporting evidence.",
                 },
+                "maxItems": 5,
             },
         },
         "required": [
-            "overall_assessment",
-            "major_threats",
-            "potential_threats",
-            "ignored_alerts",
+            "risk_level",
+            "reason",
+            "supporting_alert_ids",
         ],
-        "$defs": {
-            "threat_item": {
-                "type": "object",
-                "description": "A disease entry inside a threat category.",
-                "additionalProperties": False,
-                "properties": {
-                    "disease": {"type": "string"},
-                    "why_included": {"type": "string"},
-                    "supporting_alert_ids": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "minItems": 1,
-                    },
-                },
-                "required": ["disease", "why_included", "supporting_alert_ids"],
-            }
-        },
     }
 
     def __init__(self, api_key: str, model_id: str):
@@ -171,8 +63,8 @@ class GeminiSummary:
         self.client = genai.Client(api_key=api_key)
         self.model_id = model_id
 
-    def region_summary(
-        self, alerts: list, location_chain: list, disease_info: dict = {}
+    def risk_level(
+        self, alerts: list, country: str, disease_info: dict = {}
     ):
 
         prompt = f"""
@@ -182,7 +74,7 @@ class GeminiSummary:
             You assessments must base on alert and diseases
             information provided below as list.
 
-            Summarize base on the provided outbreak alerts
+            Assess base on the provided outbreak alerts
             and the provided disease
             metadata, DO NOT RESEARCH.
             Do not use web search, external sources, tools,
@@ -200,17 +92,41 @@ class GeminiSummary:
 
             Pay attention to the publish date of alerts.
             Today is {date.today()}.
-            The location is {location_chain}, carefully ignore alerts
-            only when they obviously unrelated to this location.
-            List all the ignored alerts follow the schema.
-            Repeated alerts for the same disease or area may indicate
-             a stronger signal, but do not overstate certainty
-             beyond the provided evidence.
+            The country is {country}.
+            Carefully assess only this country-level context.
 
-            Your task is to create a concise, objective summary for
-            travel-risk interpretation by:
+            Repeated alerts for the same disease or area may indicate
+            a stronger signal, but do not overstate certainty
+            beyond the provided evidence.
+
+            Your task is to create a concise, objective country-level
+            travel-risk assessment by using:
             1. outbreak evidence from the provided filtered alerts
             2. disease-level context from the provided disease metadata
+
+            Assign an overall country risk level:
+            - high: use only when the provided evidence shows a strong recent signal,
+            such as multiple recent meaningful alerts, or recent alerts involving
+            clearly high severity or high exposure diseases with meaningful travel relevance
+            - medium: use when some meaningful signal exists, but the evidence is mixed,
+            limited, moderate, not repeated enough, or not strong enough for high
+            - low: use when there are no relevant alerts, or when the provided evidence
+            is sparse, weak, old, indirect, or does not show a meaningful current signal
+            for typical travelers
+
+            Do not default to high.
+            Do not treat a single recent alert as automatically high.
+            Medium and low are both valid outcomes and should be used whenever the
+            provided evidence does not clearly justify high.
+            If the evidence is limited or mixed, prefer the lower reasonable level.
+            If there are no relevant alerts for the country in the provided evidence,
+            assign low risk.
+            If the provided evidence is sparse, weak, indirect, or not recent,
+            do not overstate the risk level.
+            Use medium or low whenever high is not clearly justified by the provided evidence.
+
+            The reason must be short and objective.
+            supporting_alert_ids should include only the key alerts you relied on.
 
             Return only valid JSON matching the required schema.
 
@@ -219,7 +135,7 @@ class GeminiSummary:
 
             Provided disease metadata:
             {disease_info}
-                """
+        """
 
         # schema_str = json.dumps(self.response_schema, indent=2)
 
@@ -245,7 +161,7 @@ if __name__ == "__main__":
     if api_key is None:
         raise ValueError("GEMINI_API_KEY not set")
 
-    AI = GeminiSummary(api_key, model_id="gemini-3-flash-preview")
+    AI = GeminiRiskLevel(api_key, model_id="gemini-3-flash-preview")
     # # AI = GeminiService(API_KEY, model_id="gemini-3.1-pro-preview")
     # while True:
     #     user_input = input("\ninput diseases:")

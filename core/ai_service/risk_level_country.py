@@ -8,9 +8,11 @@ import random
 
 # from . import date_tools
 # from . import region_summary
+# from . import risk_level_api
 
 import date_tools
 import region_summary
+import risk_level_api
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -187,6 +189,58 @@ def filter_entry(country:str, database : list, window: str) -> list:
     return country_match
 
 
+def process_response(response_raw) -> dict:
+    if isinstance(response_raw, dict):
+        data = response_raw
+    elif isinstance(response_raw, str):
+        try:
+            data = json.loads(response_raw)
+        except json.JSONDecodeError:
+            return {"error_msg": "response is not valid JSON"}
+    else:
+        return {"error_msg": "response is not a dict or JSON string"}
+
+    if not isinstance(data, dict):
+        return {"error_msg": "response is not a valid JSON object"}
+        
+    risk_level = data.get("risk_level")
+    if risk_level not in {"low", "medium", "high"}:
+        return {"error_msg": "invalid or missing risk_level"}
+    
+    reason = data.get("reason")
+    if not isinstance(reason, str) or not reason.strip():
+        return {"error_msg": "invalid or missing reason"}
+
+    supporting = data.get("supporting_alert_ids")
+    if not isinstance(supporting, list):
+        return {"error_msg": "invalid or missing supporting_alert_ids"}
+
+    supporting_alert_ids= []
+    for alert_id in supporting:
+        if isinstance(alert_id, str) and alert_id.strip():
+            supporting_alert_ids.append(alert_id.strip())
+    supporting_alert_ids = supporting_alert_ids[:5]
+
+    return {
+        "risk_level": risk_level,
+        "reason": reason.strip(),
+        "supporting_alert_ids": supporting_alert_ids,
+    }
+
+
+def update_response_to_json(risk_level_json:dict, response:dict, country:str, info:dict, refresh_status:str = "success"):
+    next_update_date = date_tools.initialize_refresh_date(date.today(), DEFAULT_REFRESH_DATE)
+    risk_level_json["regions"][country]["last_alert_at"] = info.get("last_alert_at", "")
+    risk_level_json["regions"][country]["risk_level"] = response["risk_level"]
+    risk_level_json["regions"][country]["reason"] = response["reason"]
+    risk_level_json["regions"][country]["supporting_alert_ids"] = response["supporting_alert_ids"]
+    risk_level_json["regions"][country]["last_update"] = date.today().isoformat
+    risk_level_json["regions"][country]["next_refresh_at"] = next_update_date
+    risk_level_json["regions"][country]["refresh_status"] = refresh_status
+    return risk_level_json
+
+
+
 
 def update_risk_level_after_fetch(database:list[dict]) -> dict:
     risk_level = load_json(RISK_LEVEL_JSON, None)
@@ -202,6 +256,13 @@ def update_risk_level_after_fetch(database:list[dict]) -> dict:
 
     countries_need_update = extract_all_countries(new_alerts)
 
+    API_KEY = os.getenv("GEMINI_API_KEY")
+    if API_KEY is None:
+        return {"error": "API KEY is Missing"}
+
+    AI = risk_level_api.GeminiRiskLevel(API_KEY, model_id="gemini-3-flash-preview")
+
+
     for country, info in countries_need_update.items():
         last_alert_date = info.get("last_alert_at", "")
         if not isinstance(country, str):
@@ -209,8 +270,33 @@ def update_risk_level_after_fetch(database:list[dict]) -> dict:
         relevant_alerts= filter_entry(
             window="3month", country=country, database=database
         )
+
+    
+        diseases_info = region_summary.search_disease_info_from_JSON(relevant_alerts)
+        try:
+            response = AI.risk_level(relevant_alerts, country, diseases_info)
+        except Exception as e:
+            if country in risk_level["regions"]:
+                risk_level["regions"][country]["refresh_status"] = "fail"
+            continue
+        risk_level_country = process_response(response)
+        if "error_msg" in risk_level_country:
+            print(risk_level_country["error_msg"])
+            if country in risk_level["regions"]:
+                risk_level["regions"][country]["refresh_status"] = "fail"
+            continue
+        risk_level = update_response_to_json(
+            risk_level, risk_level_country, country, 
+            info, refresh_status="success"
+        )
+
+    risk_level["meta"]["last_processed_date"] = date.today().isoformat()
+
+
+    save_json(RISK_LEVEL_JSON, risk_level)
+
         
-    return {}
+    return risk_level
 
 
 
