@@ -5,13 +5,13 @@ import os
 
 import random
 
-# from . import date_tools
-# from . import region_summary
-# from . import risk_level_api
+from . import date_tools
+from . import region_summary
+from . import risk_level_api
 
-import date_tools
-import region_summary
-import risk_level_api
+# import date_tools
+# import region_summary
+# import risk_level_api
 
 BASE_DIR = Path(__file__).resolve().parent
 DISEASE_INFO_JSON = BASE_DIR / "disease_info.json"
@@ -389,14 +389,16 @@ def get_country_risk_level_info(country_names: list[str]) -> dict:
 
 if __name__ == "__main__":
 
-    file = BASE_DIR2 / "scraper" / "scraper" / "alerts.json"
-    with open(file, "r", encoding="utf-8") as f:
-        database = json.load(f)
+    # file = BASE_DIR2 / "scraper" / "scraper" / "alerts.json"
+    # with open(file, "r", encoding="utf-8") as f:
+    #     database = json.load(f)
 
-    countries = initialize_risk_level_json(database)
+    # countries = initialize_risk_level_json(database)
 
+    # # print(load_json(RISK_LEVEL_JSON, None))
+    # print("update start")
+
+    # update_entry_risk_level(database)
     # print(load_json(RISK_LEVEL_JSON, None))
-    print("update start")
 
-    update_entry_risk_level(database)
-    print(load_json(RISK_LEVEL_JSON, None))
+    print(get_country_risk_level_info(["China", "BABBBC"]))
