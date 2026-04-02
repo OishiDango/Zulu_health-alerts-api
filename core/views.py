@@ -21,7 +21,6 @@ from core.ai_service.risk_level_country import get_country_risk_level_info
 from core.ai_service.region_summary import generate_summary_entry
 from core.ai_service.true_region_summary import generate_region_summary_entry
 
-
 common_filter_parameters = [
     openapi.Parameter(
         "id",
@@ -497,7 +496,10 @@ risk_level_parameters = [
     openapi.Parameter(
         "country",
         openapi.IN_QUERY,
-        description="Country name. Can be supplied multiple times. If omitted, return all country risk level info.",
+        description=(
+            "Country name. Can be supplied multiple times. "
+            "If omitted, return all country risk level info."
+        ),
         type=openapi.TYPE_STRING,
     ),
 ]
@@ -510,7 +512,6 @@ risk_level_parameters = [
     manual_parameters=risk_level_parameters,
     responses={200: "Country risk level info returned successfully."},
 )
-
 @api_view(["GET"])
 def get_country_risk_levels(request):
     country_names = request.query_params.getlist("country")
@@ -573,7 +574,6 @@ def region_summary_by_region_view(request):
     window = request.query_params.get("window")
     raw_from = request.query_params.get("from")
     raw_to = request.query_params.get("to")
-
 
     if not region:
         return JsonResponse(

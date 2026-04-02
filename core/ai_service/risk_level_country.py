@@ -149,7 +149,8 @@ def initialize_risk_level_json(database: list[dict]) -> None:
     countries = extract_all_countries(database)
     for country, info in countries.items():
         random.randint(1, DEFAULT_REFRESH_DATE)
-        # next_refresh = date_tools.initialize_refresh_date(date.today(), DEFAULT_REFRESH_DATE)
+        # next_refresh = date_tools.initialize_refresh_date(
+        # date.today(), DEFAULT_REFRESH_DATE)
         initialize["regions"][country] = {
             "risk_level": None,
             "reason": None,
@@ -320,7 +321,7 @@ def update_entry_risk_level(database: list[dict]) -> dict:
 
             try:
                 response = AI.risk_level(relevant_alerts, country, diseases_info)
-            except Exception as e:
+            except Exception:
                 if country in risk_level["regions"]:
                     risk_level["regions"][country]["refresh_status"] = "fail"
                     save_json(RISK_LEVEL_JSON, risk_level)

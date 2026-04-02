@@ -35,7 +35,7 @@ class GeminiRiskLevel:
             "supporting_alert_ids": {
                 "type": "array",
                 "description": (
-                    "All the most relevant alert external ids that directly support "
+                    "All he most relevant alert external ids that directly support "
                     "the assigned country risk level."
                 ),
                 "items": {
@@ -100,7 +100,8 @@ class GeminiRiskLevel:
             Assign an overall country risk level:
             - high: use only when the provided evidence shows a strong recent signal,
             such as multiple recent meaningful alerts, or recent alerts involving
-            clearly high severity or high exposure diseases with meaningful travel relevance
+            clearly high severity or high exposure diseases with meaningful
+            travel relevance
             - medium: use when some meaningful signal exists, but the evidence is mixed,
             limited, moderate, not repeated enough, or not strong enough for high
             - low: use when there are no relevant alerts, or when the provided evidence
@@ -116,7 +117,8 @@ class GeminiRiskLevel:
             assign low risk.
             If the provided evidence is sparse, weak, indirect, or not recent,
             do not overstate the risk level.
-            Use medium or low whenever high is not clearly justified by the provided evidence.
+            Use medium or low whenever high is not clearly justified
+            by the provided evidence.
 
             The reason must be short and objective.
             supporting_alert_ids should include only the key alerts you relied on.
