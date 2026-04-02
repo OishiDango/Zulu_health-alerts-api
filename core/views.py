@@ -288,9 +288,7 @@ def stats_diseases(request):
 
             response_data["ai_limit"] = ai_limit
             response_data["new_disease"] = update_result.get("new_disease", [])
-            response_data["updated_disease"] = update_result.get(
-                "updated_disease", []
-            )
+            response_data["updated_disease"] = update_result.get("updated_disease", [])
 
             if update_result.get("errors"):
                 response_data["severity_update_errors"] = update_result["errors"]
@@ -345,7 +343,7 @@ timeseries_parameters = [
     responses={
         200: "Timeseries summary returned successfully.",
         400: "Invalid interval. Must be day, week, or month.",
-    }
+    },
 )
 @api_view(["GET"])
 def stats_timeseries(request):

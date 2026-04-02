@@ -4,8 +4,9 @@ from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import os
 
-# import region_summary_api
-from . import region_summary_api
+import region_summary_api
+
+# from . import region_summary_api
 
 BASE_DIR = Path(__file__).resolve().parent
 DISEASE_INFO_JSON = BASE_DIR / "disease_info.json"
@@ -247,8 +248,8 @@ def generate_summary_entry(
 
     if not location_chain:
         return {"error": "relevant location chain not found in dataset"}
-    
-    diseases =  search_disease_info_from_JSON(result)
+
+    diseases = search_disease_info_from_JSON(result)
 
     API_KEY = os.getenv("GEMINI_API_KEY")
     if API_KEY is None:
@@ -276,7 +277,7 @@ def find_by_location_prefix(database: list, prefix_chain: list) -> list:
             if (
                 isinstance(chain, list)
                 and len(chain) >= len(prefix_chain)
-                and chain[:len(prefix_chain)] == prefix_chain
+                and chain[: len(prefix_chain)] == prefix_chain
             ):
                 results.append(alert)
                 unique.add(external_id)

@@ -1,6 +1,4 @@
-
 from datetime import date
-import json
 import os
 from pathlib import Path
 
@@ -16,29 +14,32 @@ DISEASE_INFO_JSON = BASE_DIR / "disease_info.json"
 BASE_DIR2 = Path(__file__).resolve().parents[2]
 
 
-def find_by_region(database:list[dict], region:str) ->list:
+def find_by_region(database: list[dict], region: str) -> list:
     results = []
     for alert in database:
         regions = alert.get("fields", {}).get("regions", [])
-        if any(isinstance(r, str) and r.strip().lower() == region.strip().lower() for r in regions):
+        if any(
+            isinstance(r, str) and r.strip().lower() == region.strip().lower()
+            for r in regions
+        ):
             results.append(alert)
 
     return results
 
 
 def generate_region_summary_entry(
-        region:str, 
-        database:list,
-        end_date: date | None = None,
-        window: str | None = None,
-        start_date: date | None = None, 
+    region: str,
+    database: list,
+    end_date: date | None = None,
+    window: str | None = None,
+    start_date: date | None = None,
 ):
     if not database:
         raise ValueError("database is required")
-       
+
     if not region:
         raise ValueError("valid region is required")
-    
+
     if end_date is None:
         end_date = date.today()
 
@@ -58,15 +59,14 @@ def generate_region_summary_entry(
     API_KEY = os.getenv("GEMINI_API_KEY")
     if API_KEY is None:
         return {"error": "API KEY is Missing"}
-    
+
     AI = region_summary_api.GeminiSummary(API_KEY, model_id="gemini-3-flash-preview")
     if not exact_match:
         return {"error": "relevant region not found in dataset"}
-    
+
     region = [region]
     response = AI.region_summary(exact_match, region, diseases)
     return {"summary": response, "region": region}
-
 
 
 # if __name__ == "__main__":

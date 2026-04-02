@@ -3,10 +3,6 @@ from google.genai import types
 from datetime import date
 import os
 
-# PORT = "7800"
-# os.environ['http_proxy'] = f"http://127.0.0.1:{PROXY_PORT}"
-# os.environ['https_proxy'] = f"http://127.0.0.1:{PROXY_PORT}"
-
 os.getenv("GEMINI_API_KEY")
 
 
@@ -30,23 +26,22 @@ class GeminiRiskLevel:
             "reason": {
                 "type": "string",
                 "description": (
-                    "A short and objective explanation for why "
+                    "A short and objective explanation paragraph for why "
                     "the selected risk level was assigned to this country."
+                    ""
                 ),
                 "minLength": 1,
-                "maxLength": 15,
             },
             "supporting_alert_ids": {
                 "type": "array",
                 "description": (
-                    "The 5 most relevant alert external ids that directly support "
+                    "All the most relevant alert external ids that directly support "
                     "the assigned country risk level."
                 ),
                 "items": {
                     "type": "string",
                     "description": "An alert external id used as supporting evidence.",
                 },
-                "maxItems": 5,
             },
         },
         "required": [
@@ -63,9 +58,7 @@ class GeminiRiskLevel:
         self.client = genai.Client(api_key=api_key)
         self.model_id = model_id
 
-    def risk_level(
-        self, alerts: list, country: str, disease_info: dict = {}
-    ):
+    def risk_level(self, alerts: list, country: str, disease_info: dict = {}):
 
         prompt = f"""
             You are assessing infectious disease risk for an
@@ -159,6 +152,7 @@ class GeminiRiskLevel:
 if __name__ == "__main__":
     api_key = os.getenv("GEMINI_API_KEY")
     if api_key is None:
+        print("GEMINI_API_KEY not set")
         raise ValueError("GEMINI_API_KEY not set")
 
     AI = GeminiRiskLevel(api_key, model_id="gemini-3-flash-preview")
