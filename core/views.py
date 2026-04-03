@@ -135,6 +135,12 @@ def serialise_alert(alert):
     }
 
 
+@swagger_auto_schema(
+    method="get",
+    operation_description="Health check endpoint",
+    tags=["1. health"],
+    responses={200: "Service is healthy"},
+)
 @api_view(["GET"])
 def health(request):
     return Response({
