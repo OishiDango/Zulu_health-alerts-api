@@ -3,31 +3,18 @@ import { useSearchParams } from "react-router-dom";
 import Navigation from "../../components/Navigation";
 import FilterPanel from "../../components/FilterPanel";
 import ResultDisplay from "../../components/ResultDisplay";
-import australiaData from "../../data/australiaMockData";
-import allMockData from "../../data/allMockData";
 import styles from "./SearchResults.module.css";
+import { getAlerts } from "../../api/alerts";
 
-const filterTypes = ["id", "disease", "species", "region", "location"];
-
-const fakeFetchResults = async (filters) => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  // if no filters, return all data
-  if (Object.values(filters).every((arr) => arr.length === 0)) {
-    return allMockData;
-  }
-
-  // fake australia
-  if (
-    filters.region.includes("oceania") ||
-    filters.location.includes("australia") ||
-    filters.disease.includes("avian influenza")
-  ) {
-    return australiaData;
-  }
-
-  return { alerts: [] };
-};
+const filterTypes = [
+  "id",
+  "disease",
+  "species",
+  "region",
+  "location",
+  "from",
+  "to",
+];
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -38,15 +25,18 @@ const SearchResults = () => {
   // filters from URL search params
   const filters = useMemo(
     () => ({
-      id: searchParams.getAll("id"),
-      disease: searchParams.getAll("disease"),
-      species: searchParams.getAll("species"),
-      region: searchParams.getAll("region"),
-      location: searchParams.getAll("location"),
+      id: searchParams.getAll("id").map((item) => item.toLowerCase()),
+      disease: searchParams.getAll("disease").map((item) => item.toLowerCase()),
+      species: searchParams.getAll("species").map((item) => item.toLowerCase()),
+      region: searchParams.getAll("region").map((item) => item.toLowerCase()),
+      location: searchParams
+        .getAll("location")
+        .map((item) => item.toLowerCase()),
+      from: searchParams.get("from") || "",
+      to: searchParams.get("to") || "",
     }),
     [searchParams],
   );
-
   // derive page title based on filters
   const pageTitle = useMemo(() => {
     if (filters.region.length > 0)
@@ -65,8 +55,19 @@ const SearchResults = () => {
       setLoading(true);
 
       try {
-        const data = await fakeFetchResults(filters);
-        setResultData(data);
+        const today = new Date().toISOString().split("T")[0];
+
+        const apiFilters = {
+          ...filters,
+          from: filters.from || "1990-01-01",
+          to: filters.to || today,
+        };
+
+        const data = await getAlerts(apiFilters);
+
+        setResultData({
+          alerts: data.alerts || [],
+        });
       } catch (error) {
         console.error("Failed to fetch results:", error);
         setResultData({ alerts: [] });

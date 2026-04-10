@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 const options = ["id", "disease", "species", "region", "location"];
 
 function SearchBar() {
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(options[0]);
   const [searchValue, setSearchValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -14,11 +15,12 @@ function SearchBar() {
     setIsOpen(false);
   };
 
-  const handleSearch = async () => {
-    if (!searchValue) return;
+  const handleSearch = () => {
+    if (!searchValue.trim()) return;
 
-    //const data = call the api to get the data
-    // navigation to the page with the search result
+    const value = searchValue.trim();
+
+    navigate(`/search?${selected}=${encodeURIComponent(value)}`);
   };
 
   const handleKeyDown = (event) => {
