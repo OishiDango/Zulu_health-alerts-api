@@ -1,5 +1,6 @@
 import Navigation from "../../components/Navigation";
 import WorldMapComponent from "../../components/WorldMap";
+import DiseaseGraph from "../../components/DiseaseGraph";
 import styles from "./Home.module.css";
 
 function Home() {
@@ -10,6 +11,7 @@ function Home() {
         <div className={styles.mapWrapper}>
           <WorldMapComponent />
         </div>
+        <DiseaseGraph />
       </main>
     </>
   );

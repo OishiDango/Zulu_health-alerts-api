@@ -1,0 +1,40 @@
+.container {
+  padding: 24px;
+}
+
+.title {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+}
+
+.form {
+  margin-bottom: 24px;
+}
+
+.inputs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.button {
+  padding: 8px 20px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.button:hover {
+  background-color: #1d4ed8;
+}
