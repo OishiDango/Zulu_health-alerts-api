@@ -2,6 +2,7 @@ import Navigation from "../../components/Navigation";
 import WorldMapComponent from "../../components/WorldMap";
 import DiseaseGraph from "../../components/DiseaseGraph";
 import styles from "./Home.module.css";
+import DiseaseSpreadChart from "../../components/DiseaseSpreadChart";
 
 function Home() {
   return (
@@ -13,6 +14,9 @@ function Home() {
         </div>
         <div className={styles.graphSection}>
           <DiseaseGraph />
+        </div>
+        <div className={styles.pieChartSection}>
+          <DiseaseSpreadChart />
         </div>
       </main>
     </>
