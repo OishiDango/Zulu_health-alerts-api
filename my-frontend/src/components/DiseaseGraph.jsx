@@ -11,6 +11,7 @@ function DiseaseGraph() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // so that the graph doesnt look incomplete
   const fillMissingPeriods = (results, from, to, interval) => {
     const map = {};
     results.forEach((r) => (map[r.period.slice(0, 10)] = r.count));
@@ -27,6 +28,7 @@ function DiseaseGraph() {
     }
 
     while (cursor <= end) {
+      // timezone bug fix
       const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
       periods.push({ period: key, count: map[key] || 0 });
 
