@@ -7,10 +7,18 @@
 
 .mapWrapper {
   width: 100%;
-  height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+
+.graphSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
 

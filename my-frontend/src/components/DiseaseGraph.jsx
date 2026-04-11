@@ -7,6 +7,9 @@ function DiseaseGraph() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [disease, setDisease] = useState("");
+  const [species, setSpecies] = useState("");
+  const [region, setRegion] = useState("");
+  const [location, setLocation] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -55,8 +58,7 @@ function DiseaseGraph() {
 
     try {
       const interval = getInterval();
-      const result = await getTimeseriesStats({ from, to, disease, interval });
-      console.log(result.results);
+      const result = await getTimeseriesStats({ from, to, disease, species, region, location, interval });
       setData(fillMissingPeriods(result.results || [], from, to, interval));
     } catch (err) {
       console.error(err);
@@ -87,9 +89,30 @@ function DiseaseGraph() {
           />
           <input
             type="text"
-            placeholder="Disease (e.g. measles)"
+            placeholder="Disease (e.g. cholera)"
             value={disease}
             onChange={(e) => setDisease(e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Species (e.g. human)"
+            value={species}
+            onChange={(e) => setSpecies(e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Region (e.g. africa)"
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Location (e.g. kenya)"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
             className={styles.input}
           />
           <button type="submit" className={styles.button}>
@@ -107,7 +130,7 @@ function DiseaseGraph() {
             <XAxis dataKey="period" tick={{ fontSize: 12 }} />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="count" fill="#2563eb" maxBarSize={40} />
+            <Bar dataKey="count" fill="#255ad4" maxBarSize={40} />
           </BarChart>
         </ResponsiveContainer>
       )}

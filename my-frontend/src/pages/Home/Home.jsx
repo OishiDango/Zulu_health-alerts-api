@@ -11,7 +11,9 @@ function Home() {
         <div className={styles.mapWrapper}>
           <WorldMapComponent />
         </div>
-        <DiseaseGraph />
+        <div className={styles.graphSection}>
+          <DiseaseGraph />
+        </div>
       </main>
     </>
   );
