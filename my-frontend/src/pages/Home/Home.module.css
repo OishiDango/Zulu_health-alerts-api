@@ -1,13 +1,15 @@
 .pageContainer {
   width: 100%;
-   margin: 0;
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .mapWrapper {
   width: 100%;
-  height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);
   display: flex;
   justify-content: center;
   align-items: flex-start;

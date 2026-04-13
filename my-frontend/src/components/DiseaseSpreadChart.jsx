@@ -14,8 +14,7 @@ function DiseaseSpreadChart() {
     const fetchData = async () => {
       try {
         const result = await getDiseaseStats();
-        const total = result.by_disease.reduce((sum, d) => sum + d.count, 0);
-        const chartData = result.by_disease.filter((d) => d.count / total >= 0.02);
+        const chartData = result.by_disease;
 
         setData(chartData);
       } catch (err) {
@@ -46,7 +45,8 @@ function DiseaseSpreadChart() {
           cx="50%"
           cy="50%"
           outerRadius={140}
-          label={({ name }) => name}
+          label={({ name, percent }) => percent > 0.03 ? name : ""}
+          labelLine={false}
         >
           {data.map((_, index) => (
             <Cell key={index} fill={COLORS[index % COLORS.length]} />
