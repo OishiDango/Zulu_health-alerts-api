@@ -7,6 +7,7 @@ import {
   fetchFinancialData,
   normaliseFinancialEvents,
 } from "../../api/financial";
+import DiseaseFilter from "../../components/filters/DiseaseFilter";
 import {
   ResponsiveContainer,
   BarChart,
@@ -22,28 +23,48 @@ import {
 import styles from "./OutbreakFinancialAnalysis.module.css";
 
 function parseMultiValueInput(input) {
+  if (Array.isArray(input)) {
+    return input.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof input !== "string") {
+    return [];
+  }
+
   return input
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
-function addTickerToRows(rows, stockRows, ticker) {
-  const stockLookup = new Map(stockRows.map((row) => [row.date, row.close]));
-  let lastClose = null;
+function findLatestCloseOnOrBefore(stockLookup, targetDate, maxLookbackDays = 31) {
+  const date = new Date(`${targetDate}T00:00:00`);
 
-  return rows.map((row) => {
-    const exactClose = stockLookup.get(row.period);
+  for (let i = 0; i <= maxLookbackDays; i++) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const key = `${yyyy}-${mm}-${dd}`;
 
-    if (exactClose != null) {
-      lastClose = exactClose;
+    if (stockLookup.has(key)) {
+      return stockLookup.get(key);
     }
 
-    return {
-      ...row,
-      [ticker]: exactClose != null ? exactClose : lastClose,
-    };
-  });
+    date.setDate(date.getDate() - 1);
+  }
+
+  return null;
+}
+
+function addTickerToRows(rows, stockRows, ticker) {
+  const stockLookup = new Map(
+    stockRows.map((row) => [row.date, row.close])
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    [ticker]: findLatestCloseOnOrBefore(stockLookup, row.period, 31),
+  }));
 }
 
 function calculateLagCorrelation(rows, ticker, lag = 0) {
@@ -86,17 +107,23 @@ function calculateLagCorrelation(rows, ticker, lag = 0) {
     return num / denom;
   }
 
-  function getCorrelationLabel(value) {
-    if (value == null) return "Insufficient data";
+function getCorrelationLabel(value) {
+  if (value == null) return "Insufficient data";
 
-    const abs = Math.abs(value);
+  const abs = Math.abs(value);
 
-    if (abs > 0.7) return "Strong";
-    if (abs > 0.4) return "Moderate";
-    if (abs > 0.2) return "Weak";
+  if (abs > 0.7) return "Strong";
+  if (abs > 0.4) return "Moderate";
+  if (abs > 0.2) return "Weak";
 
-    return "Very weak";
-  }
+  return "Very weak";
+}
+
+function getMaxLag(interval) {
+  if (interval === "month") return 3;
+  if (interval === "week") return 8;
+  return 14; // day
+}
 
 function findBestLag(rows, ticker, maxLag = 8) {
   let bestLag = null;
@@ -169,11 +196,13 @@ export default function OutbreakFinancialAnalysis() {
     from: "2020-01-01",
     to: "2026-01-01",
     interval: "month",
-    disease: "measles",
+    disease: [],
     species: "",
     region: "",
     location: "",
   });
+
+  const maxLag = getMaxLag(filters.interval);
 
   const [tickerInput, setTickerInput] = useState("");
   const [selectedTickers, setSelectedTickers] = useState([]);
@@ -207,6 +236,9 @@ export default function OutbreakFinancialAnalysis() {
         region: parseMultiValueInput(filters.region),
         location: parseMultiValueInput(filters.location),
       };
+
+      console.log("filters", filters);
+console.log("formattedFilters", formattedFilters);
 
       const raw = await getTimeseriesStats(formattedFilters);
       const rows = normaliseAlertTimeseries(raw);
@@ -320,13 +352,11 @@ export default function OutbreakFinancialAnalysis() {
         </label>
 
         <label>
-          Disease
-          <input
-            type="text"
-            name="disease"
+          <DiseaseFilter
             value={filters.disease}
-            onChange={handleFilterChange}
-            placeholder="e.g. measles, covid-19"
+            onChange={(newDiseases) =>
+              setFilters((f) => ({ ...f, disease: newDiseases }))
+            }
           />
         </label>
 
@@ -366,10 +396,13 @@ export default function OutbreakFinancialAnalysis() {
         <label>
           Lag
           <select value={lag} onChange={(e) => setLag(Number(e.target.value))}>
-            <option value={0}>0 (same day)</option>
-            <option value={1}>1 interval</option>
-            <option value={3}>3 intervals</option>
-            <option value={7}>7 intervals</option>
+            {Array.from({ length: maxLag + 1 }).map((_, i) => (
+              <option key={i} value={i}>
+                {i === 0
+                  ? "0 (same interval)"
+                  : `${i} ${filters.interval}${i > 1 ? "s" : ""}`}
+              </option>
+            ))}
           </select>
         </label>
 
@@ -494,7 +527,7 @@ export default function OutbreakFinancialAnalysis() {
 
         {selectedTickers.map((ticker) => {
           const corr = calculateLagCorrelation(comparisonRows, ticker, lag);
-          const { bestLag, bestCorr } = findBestLag(comparisonRows, ticker, 8);
+          const { bestLag, bestCorr } = findBestLag(comparisonRows, ticker, maxLag);
           const currentTrend = getLatestCasesTrend(comparisonRows);
           const predictedDirection = getPredictionDirection(currentTrend, bestCorr);
           const confidence = getConfidenceLabel(bestCorr);

@@ -20,7 +20,7 @@
   height: fit-content;
 }
 
-.sidebar label {
+.sidebar > label {
   display: flex;
   flex-direction: column;
   gap: 6px;
