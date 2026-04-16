@@ -56,7 +56,9 @@ login_body_schema = openapi.Schema(
 
 @swagger_auto_schema(
     method="post",
-    operation_description="Create a new user account and return an authentication token.",
+    operation_description=(
+        "Create a new user account and return an authentication token."
+    ),
     tags=["auth"],
     request_body=signup_body_schema,
     responses={
@@ -146,7 +148,9 @@ def me_view(request):
 
 @swagger_auto_schema(
     method="post",
-    operation_description="Log out the currently authenticated user by deleting their token.",
+    operation_description=(
+        "Log out the currently authenticated user by deleting their token."
+    ),
     tags=["auth"],
     manual_parameters=[auth_header_param],
     responses={
