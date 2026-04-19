@@ -42,7 +42,7 @@ function Signup() {
       <main className={styles.page}>
         <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.title}>Sign Ups</h1>
+            <h1 className={styles.title}>Sign Up</h1>
             <p className={styles.subtitle}>
               Join Health Alert to start tracking personalized disease alerts worldwide.
             </p>
