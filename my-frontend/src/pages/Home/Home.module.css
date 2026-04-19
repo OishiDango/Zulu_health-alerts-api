@@ -127,20 +127,33 @@
   align-items: flex-start;
 }
 
-.graphSection {
-  max-width: 1200px;
+.chartsRow {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding: 0 20px;
-  box-sizing: border-box;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+}
+
+.graphSection {
+  border-right: 1px solid var(--color-border, #e2e8f0);
+  min-width: 0;
 }
 
 .pieChartSection {
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 0 20px;
-  box-sizing: border-box;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .graphSection {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+  }
 }
 
 

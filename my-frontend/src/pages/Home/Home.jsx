@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Navigation from "../../components/Navigation";
 import WorldMapComponent from "../../components/WorldMap";
+import StatsBar from "../../components/StatsBar";
 import DiseaseGraph from "../../components/DiseaseGraph";
 import styles from "./Home.module.css";
 import DiseaseSpreadChart from "../../components/DiseaseSpreadChart";
@@ -37,11 +38,14 @@ function Home() {
         <div className={styles.mapWrapper}>
           <WorldMapComponent />
         </div>
-        <div className={styles.graphSection}>
-          <DiseaseGraph />
-        </div>
-        <div className={styles.pieChartSection}>
-          <DiseaseSpreadChart />
+        <StatsBar />
+        <div className={styles.chartsRow}>
+          <div className={styles.graphSection}>
+            <DiseaseGraph />
+          </div>
+          <div className={styles.pieChartSection}>
+            <DiseaseSpreadChart />
+          </div>
         </div>
       </main>
     </>
