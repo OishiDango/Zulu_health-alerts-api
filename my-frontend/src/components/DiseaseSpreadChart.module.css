@@ -16,3 +16,8 @@
   color: #8a93a3;
   margin-bottom: 16px;
 }
+
+.chartWrapper {
+  width: 100%;
+  height: 420px;
+}
