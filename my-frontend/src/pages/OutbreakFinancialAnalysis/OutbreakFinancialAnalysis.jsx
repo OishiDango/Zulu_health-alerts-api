@@ -11,6 +11,7 @@ import FilterSection from "../../components/filters/FilterSection";
 import DiseaseFilter from "../../components/filters/DiseaseFilter";
 import SpeciesFilter from "../../components/filters/SpeciesFilter";
 import LocationFilter from "../../components/filters/LocationFilter";
+import SectorTickerPicker from "../../components/filters/SectorTickerPicker";
 import {
   ResponsiveContainer,
   BarChart,
@@ -192,6 +193,19 @@ function getConfidenceLabel(corr) {
   return "Very low";
 }
 
+function formatLag(lag, interval) {
+  if (lag === 0) return "no delay (same time)";
+
+  const unit =
+    interval === "month"
+      ? "month"
+      : interval === "week"
+      ? "week"
+      : "day";
+
+  return `${lag} ${unit}${lag > 1 ? "s" : ""} delay`;
+}
+
 export default function OutbreakFinancialAnalysis() {
   const [lag, setLag] = useState(0);
 
@@ -261,40 +275,45 @@ console.log("formattedFilters", formattedFilters);
     }
   };
 
-  const handleAddTicker = async () => {
-    const ticker = tickerInput.trim().toUpperCase();
+const handleAddTicker = async (tickerOverride = "") => {
+  const sourceTicker =
+    typeof tickerOverride === "string" && tickerOverride
+      ? tickerOverride
+      : tickerInput;
 
-    if (!ticker) return;
-    if (selectedTickers.includes(ticker)) return;
+  const ticker = sourceTicker.trim().toUpperCase();
 
-    if (!baseRows.length) {
-      setError("Load outbreak data first.");
-      return;
-    }
+  if (!ticker) return;
+  if (selectedTickers.includes(ticker)) return;
 
-    try {
-      setLoadingTicker(true);
-      setError("");
+  if (!baseRows.length) {
+    setError("Load outbreak data first.");
+    return;
+  }
 
-      const raw = await fetchFinancialData({
-        ticker,
-        from: filters.from,
-        to: filters.to,
-      });
+  try {
+    setLoadingTicker(true);
+    setError("");
 
-      const stockRows = normaliseFinancialEvents(raw);
+    const raw = await fetchFinancialData({
+      ticker,
+      from: filters.from,
+      to: filters.to,
+    });
 
-      setComparisonRows((prevRows) =>
-        addTickerToRows(prevRows, stockRows, ticker)
-      );
-      setSelectedTickers((prev) => [...prev, ticker]);
-      setTickerInput("");
-    } catch (err) {
-      setError(err.message || "Failed to add ticker");
-    } finally {
-      setLoadingTicker(false);
-    }
-  };
+    const stockRows = normaliseFinancialEvents(raw);
+
+    setComparisonRows((prevRows) =>
+      addTickerToRows(prevRows, stockRows, ticker)
+    );
+    setSelectedTickers((prev) => [...prev, ticker]);
+    setTickerInput("");
+  } catch (err) {
+    setError(err.message || "Failed to add ticker");
+  } finally {
+    setLoadingTicker(false);
+  }
+};
 
   const handleRemoveTicker = (tickerToRemove) => {
     setSelectedTickers((prev) =>
@@ -346,6 +365,22 @@ console.log("formattedFilters", formattedFilters);
                 setFilters((f) => ({ ...f, to: e.target.value }))
               }
             />
+          </label>
+        </FilterSection>
+
+        <FilterSection title="Interval">
+          <label>
+            Interval
+            <select
+              value={filters.interval}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, interval: e.target.value }))
+              }
+            >
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
           </label>
         </FilterSection>
 
@@ -408,11 +443,36 @@ console.log("formattedFilters", formattedFilters);
               onChange={(e) => setTickerInput(e.target.value)}
               placeholder="Add ticker e.g. DAL"
             />
-            <button onClick={handleAddTicker} disabled={loadingTicker}>
+            <button onClick={() => handleAddTicker()} disabled={loadingTicker}>
               {loadingTicker ? "Adding..." : "Add"}
             </button>
           </div>
         </div>
+
+        <section className={styles.hero}>
+          <div className={styles.heroLeft}>
+            <h2>Compare companies</h2>
+            <p>
+              Explore how disease outbreak trends may relate to market behaviour across
+              sectors like travel, tourism, retail, and healthcare.
+            </p>
+            <p>
+              Use outbreak filters to load case data, then compare it with selected
+              company tickers to identify patterns, lagged relationships, and possible
+              business impacts.
+            </p>
+          </div>
+
+          <div className={styles.heroRight}>
+            <h2>How to use</h2>
+            <ol>
+              <li>Select outbreak filters on the left</li>
+              <li>Load outbreak data</li>
+              <li>Add a ticker or explore by sector</li>
+              <li>Compare the chart, table, and correlation results</li>
+            </ol>
+          </div>
+        </section>
 
         {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -457,6 +517,14 @@ console.log("formattedFilters", formattedFilters);
           ) : (
             <p>No outbreak data loaded yet.</p>
           )}
+        </section>
+
+        <section className={styles.panel}>
+          <h2>Explore by sector</h2>
+          <SectorTickerPicker
+            selectedTickers={selectedTickers}
+            onAddTicker={handleAddTicker}
+          />
         </section>
 
         <section className={styles.panel}>
@@ -534,7 +602,7 @@ console.log("formattedFilters", formattedFilters);
                 <p>
                   <strong>Best lag:</strong>{" "}
                   {bestLag != null
-                    ? `${bestLag} ${bestLag === 1 ? "interval" : "intervals"}`
+                    ? formatLag(bestLag, filters.interval)
                     : "N/A"}
                 </p>
 
@@ -556,7 +624,7 @@ console.log("formattedFilters", formattedFilters);
                   <strong>Prediction:</strong>{" "}
                   {predictedDirection && bestLag != null
                     ? `${ticker} stock is likely to ${predictedDirection} in ~${bestLag} ${
-                        bestLag === 1 ? "interval" : "intervals"
+                        filters.interval
                       }`
                     : "Not enough data to generate a prediction"}
                 </p>
