@@ -7,8 +7,10 @@ import {
   fetchFinancialData,
   normaliseFinancialEvents,
 } from "../../api/financial";
+import FilterSection from "../../components/filters/FilterSection";
 import DiseaseFilter from "../../components/filters/DiseaseFilter";
 import SpeciesFilter from "../../components/filters/SpeciesFilter";
+import LocationFilter from "../../components/filters/LocationFilter";
 import {
   ResponsiveContainer,
   BarChart,
@@ -199,8 +201,10 @@ export default function OutbreakFinancialAnalysis() {
     interval: "month",
     disease: [],
     species: [],
-    region: "",
-    location: "",
+    location: {
+      continent: [],
+      country: [],
+    },
   });
 
   const maxLag = getMaxLag(filters.interval);
@@ -231,11 +235,13 @@ export default function OutbreakFinancialAnalysis() {
       setError("");
 
       const formattedFilters = {
-        ...filters,
-        disease: parseMultiValueInput(filters.disease),
-        species: parseMultiValueInput(filters.species),
-        region: parseMultiValueInput(filters.region),
-        location: parseMultiValueInput(filters.location),
+        from: filters.from,
+        to: filters.to,
+        interval: filters.interval,
+        disease: filters.disease,
+        species: filters.species,
+        region: filters.location.continent,
+        location: filters.location.country,
       };
 
       console.log("filters", filters);
@@ -319,78 +325,59 @@ console.log("formattedFilters", formattedFilters);
       <aside className={styles.sidebar}>
         <h2>Filters</h2>
 
-        <label>
-          From
-          <input
-            type="date"
-            name="from"
-            value={filters.from}
-            onChange={handleFilterChange}
-          />
-        </label>
+        <FilterSection title="Date Range">
+          <label>
+            From
+            <input
+              type="date"
+              value={filters.from}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, from: e.target.value }))
+              }
+            />
+          </label>
 
-        <label>
-          To
-          <input
-            type="date"
-            name="to"
-            value={filters.to}
-            onChange={handleFilterChange}
-          />
-        </label>
+          <label>
+            To
+            <input
+              type="date"
+              value={filters.to}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, to: e.target.value }))
+              }
+            />
+          </label>
+        </FilterSection>
 
-        <label>
-          Interval
-          <select
-            name="interval"
-            value={filters.interval}
-            onChange={handleFilterChange}
-          >
-            <option value="day">day</option>
-            <option value="week">week</option>
-            <option value="month">month</option>
-          </select>
-        </label>
-
-        <label>
+        <FilterSection title="Diseases">
           <DiseaseFilter
             value={filters.disease}
             onChange={(newDiseases) =>
               setFilters((f) => ({ ...f, disease: newDiseases }))
             }
           />
-        </label>
+        </FilterSection>
 
-        <label>
+        <FilterSection title="Species">
           <SpeciesFilter
             value={filters.species}
             onChange={(newSpecies) =>
               setFilters((f) => ({ ...f, species: newSpecies }))
             }
           />
-        </label>
+        </FilterSection>
 
-        <label>
-          Region
-          <input
-            type="text"
-            name="region"
-            value={filters.region}
-            onChange={handleFilterChange}
-            placeholder="comma-separated"
-          />
-        </label>
-
-        <label>
-          Location
-          <input
-            type="text"
-            name="location"
+        <FilterSection title="Location">
+          <LocationFilter
             value={filters.location}
-            onChange={handleFilterChange}
-            placeholder="comma-separated"
+            onChange={(newLocation) =>
+              setFilters((f) => ({
+                ...f,
+                location: newLocation,
+              }))
+            }
           />
-        </label>
+        </FilterSection>
 
         <label>
           Lag
