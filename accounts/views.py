@@ -245,4 +245,3 @@ def me_view(request):
 def logout_view(request):
     request.user.auth_token.delete()
     return Response({"message": "Logged out successfully."})
-    
