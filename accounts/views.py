@@ -24,20 +24,49 @@ def signup_view(request):
         # Send welcome email via Brevo
         if user.email:
             configuration = sib_api_v3_sdk.Configuration()
-            configuration.api_key['api-key'] = os.environ.get('BREVO_API_KEY')
+            configuration.api_key['api-key'] = os.environ.get(
+                'BREVO_API_KEY'
+            )
 
             api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
                 sib_api_v3_sdk.ApiClient(configuration)
             )
 
+            img_base = (
+                "https://raw.githubusercontent.com/"
+                "ZuluSENG3011/Zulu_health-alerts-api/email_sender/"
+            )
+
+            html_content = (
+                f"<h1>Welcome, {user.username}!</h1>"
+                "<p>Thanks for signing up! Here's what you can do next "
+                "with our Health Alert API, which reads disease "
+                "outbreaks from across the world.</p>"
+                "<p>You can try out our market analytics page! "
+                "Where we compare global disease outbreaks to "
+                "current market predictions.</p>"
+                f"<img src='{img_base}zulu_1.png' "
+                "alt='Zulu Health Alerts' width='1000'>"
+                "<p>Or our global world map, which shows global disease "
+                "outbreaks by country on a visualised world map.</p>"
+                f"<img src='{img_base}zulu_2.png' "
+                "alt='Zulu Health Alerts' width='1000'>"
+                "<p>Our AI chat box, which will answer all your "
+                "questions.</p>"
+                f"<img src='{img_base}zulu_3.png' "
+                "alt='Zulu Health Alerts' width='1000'>"
+                "<p>And many more features, on our team's global "
+                "Health API.</p>"
+            )
+
             email = sib_api_v3_sdk.SendSmtpEmail(
                 to=[{"email": user.email, "name": user.username}],
-                sender={"email": "l4liem@gmail.com", "name": "Your App"},
-                subject="Welcome to Our App!",
-                html_content=f"""
-                    <h1>Welcome, {user.username}!</h1>
-                    <p>Thanks for signing up. Here's what you can do next...</p>
-                """
+                sender={
+                    "email": "l4liem@gmail.com",
+                    "name": "Zulu Health Alerts",
+                },
+                subject="Welcome to Zulu Health Alerts API!",
+                html_content=html_content,
             )
 
             try:
