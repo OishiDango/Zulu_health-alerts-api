@@ -367,19 +367,6 @@ export default function OutbreakFinancialAnalysis() {
             />
           </FilterSection>
 
-          <label>
-            Lag
-            <select value={lag} onChange={(e) => setLag(Number(e.target.value))}>
-              {Array.from({ length: maxLag + 1 }).map((_, i) => (
-                <option key={i} value={i}>
-                  {i === 0
-                    ? "0 (same interval)"
-                    : `${i} ${filters.interval}${i > 1 ? "s" : ""}`}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <button onClick={handleLoadCases} disabled={loadingCases}>
             {loadingCases ? "Loading..." : "Load outbreak data"}
           </button>
@@ -497,37 +484,6 @@ export default function OutbreakFinancialAnalysis() {
             </div>
           </section>
 
-          <section className={styles.panel}>
-            <h2>{modeConfig.comparisonTitle}</h2>
-
-            <div className={styles.tableWrap}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Period</th>
-                    <th>Cases</th>
-                    {selectedTickers.map((ticker) => (
-                      <th key={ticker}>{ticker} Close</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableRows.map((row) => (
-                    <tr key={row.period}>
-                      <td>{row.period}</td>
-                      <td>{row.cases}</td>
-                      {selectedTickers.map((ticker) => (
-                        <td key={ticker}>
-                          {row[ticker] != null ? row[ticker].toFixed(2) : "-"}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
           {selectedTickers.map((ticker) => {
             const corr = calculateLagCorrelation(comparisonRows, ticker, lag);
             const { bestLag, bestCorr } = findBestLag(
@@ -550,25 +506,12 @@ export default function OutbreakFinancialAnalysis() {
               <section key={ticker} className={styles.panel}>
                 <h2>{ticker} vs outbreak cases</h2>
 
-                <p className={styles.correlation}>
-                  Current lag ({lag}): {corr?.toFixed(2) || "N/A"}
-                </p>
-
-                <p>
-                  Best lag: {bestLag ?? "N/A"} ({bestCorr?.toFixed(2) || "N/A"})
-                </p>
-
                 <div
-                  className={`${styles.insightCard} ${
-                    styles[insight.level.toLowerCase()]
-                  }`}
+                  className={styles.insightCard}
                 >
                   {/* Header */}
                   <div className={styles.header}>
                     <h3 className={styles.title}>✈️ {insight.title}</h3>
-                    <span className={styles.badge}>
-                      {insight.level} impact
-                    </span>
                   </div>
 
                   {/* Summary */}
@@ -579,11 +522,6 @@ export default function OutbreakFinancialAnalysis() {
                     <div>
                       <span className={styles.metaLabel}>📊 Indicator</span>
                       <p>{insight.indicator}</p>
-                    </div>
-
-                    <div>
-                      <span className={styles.metaLabel}>⏱ Typical delay</span>
-                      <p>{insight.timing}</p>
                     </div>
 
                     <div>
@@ -685,6 +623,37 @@ export default function OutbreakFinancialAnalysis() {
               </section>
             );
           })}
+
+          <section className={styles.panel}>
+            <h2>{modeConfig.comparisonTitle}</h2>
+
+            <div className={styles.tableWrap}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Cases</th>
+                    {selectedTickers.map((ticker) => (
+                      <th key={ticker}>{ticker} Close</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map((row) => (
+                    <tr key={row.period}>
+                      <td>{row.period}</td>
+                      <td>{row.cases}</td>
+                      {selectedTickers.map((ticker) => (
+                        <td key={ticker}>
+                          {row[ticker] != null ? row[ticker].toFixed(2) : "-"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </main>
       </div>
     </>

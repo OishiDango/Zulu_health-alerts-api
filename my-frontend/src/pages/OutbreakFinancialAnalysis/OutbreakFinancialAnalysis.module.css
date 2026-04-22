@@ -115,6 +115,7 @@ td {
 .chartWrap {
   width: 100%;
   height: 320px;
+  margin-top: 16px;
 }
 
 .hero {
@@ -183,6 +184,7 @@ td {
   border-radius: 12px;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
+  border-left: 4px solid #3b82f6;
 }
 
 /* HEADER */
@@ -203,19 +205,6 @@ td {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-}
-
-/* COLORS BY LEVEL */
-.low {
-  border-left: 4px solid #10b981;
-}
-
-.moderate {
-  border-left: 4px solid #f59e0b;
-}
-
-.high {
-  border-left: 4px solid #ef4444;
 }
 
 /* SUMMARY */
