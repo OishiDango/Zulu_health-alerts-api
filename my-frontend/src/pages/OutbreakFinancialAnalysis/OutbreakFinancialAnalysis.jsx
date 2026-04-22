@@ -160,58 +160,15 @@ function formatLagForTravel(lag, interval) {
   return `about ${lag} ${interval}${lag > 1 ? "s" : ""} later`;
 }
 
-function generateFinanceInsightCard({
-  ticker,
-  trend,
-  correlation,
-  lag,
-  interval,
-}) {
-  if (correlation == null || lag == null) {
-    return {
-      title: "Market Insight",
-      level: "Low",
-      summary: "There is not enough data to identify a clear market relationship yet.",
-      implications: ["Try a wider date range or a different ticker."],
-      signal: "Insufficient data",
-      timing: "Unknown",
-    };
-  }
-
-  const strength = getImpactStrength(correlation);
-  const timing = lag === 0
-    ? `within the same ${interval}`
-    : `about ${lag} ${interval}${lag > 1 ? "s" : ""} later`;
-
-  return {
-    title: "Market Insight",
-    level: strength,
-    summary:
-      correlation > 0
-        ? `This ticker tends to move in the same direction as outbreak cases ${timing}.`
-        : `This ticker tends to move in the opposite direction to outbreak cases ${timing}.`,
-    implications: [
-      "Use this as an exploratory relationship, not a prediction.",
-      "Compare with additional companies for stronger interpretation.",
-    ],
-    signal:
-      correlation > 0
-        ? `${ticker} shows a positive relationship`
-        : `${ticker} shows a negative relationship`,
-    timing,
-  };
-}
-
 export default function OutbreakFinancialAnalysis() {
-  const [mode, setMode] = useState("finance");
-  const modeConfig = MODE_CONFIG[mode];
+  const modeConfig = MODE_CONFIG.travel;
 
   const [lag, setLag] = useState(0);
 
   const [filters, setFilters] = useState({
-    from: "2020-01-01",
-    to: "2026-01-01",
-    interval: "month",
+    from: "2026-01-01",
+    to: new Date().toISOString().slice(0, 10),
+    interval: "week",
     disease: [],
     species: [],
     location: {
@@ -227,7 +184,7 @@ export default function OutbreakFinancialAnalysis() {
   const [baseRows, setBaseRows] = useState([]);
   const [comparisonRows, setComparisonRows] = useState([]);
   const [loadingCases, setLoadingCases] = useState(false);
-  const [loadingTicker, setLoadingTicker] = useState(false);
+  const [loadingTicker, setLoadingTicker] = useState(null);
   const [error, setError] = useState("");
 
   const tableRows = useMemo(() => {
@@ -280,7 +237,7 @@ export default function OutbreakFinancialAnalysis() {
     }
 
     try {
-      setLoadingTicker(true);
+      setLoadingTicker(ticker);
       setError("");
 
       const raw = await fetchFinancialData({
@@ -299,7 +256,7 @@ export default function OutbreakFinancialAnalysis() {
     } catch (err) {
       setError(err.message || "Failed to add ticker");
     } finally {
-      setLoadingTicker(false);
+      setLoadingTicker(null);
     }
   };
 
@@ -410,64 +367,19 @@ export default function OutbreakFinancialAnalysis() {
             />
           </FilterSection>
 
-          <label>
-            Lag
-            <select value={lag} onChange={(e) => setLag(Number(e.target.value))}>
-              {Array.from({ length: maxLag + 1 }).map((_, i) => (
-                <option key={i} value={i}>
-                  {i === 0
-                    ? "0 (same interval)"
-                    : `${i} ${filters.interval}${i > 1 ? "s" : ""}`}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button onClick={handleLoadCases} disabled={loadingCases}>
+          <button
+            className={styles.loadButton}
+            onClick={handleLoadCases}
+            disabled={loadingCases}
+          >
             {loadingCases ? "Loading..." : "Load outbreak data"}
           </button>
         </aside>
 
-        <main id="main-content" className={styles.main}>
-          <div className={styles.header}>
-            <div>
-              <h1>{modeConfig.pageTitle}</h1>
-              <p className={styles.subtitle}>{modeConfig.subtitle}</p>
-
-              <div className={styles.modeToggle}>
-                <button
-                  type="button"
-                  className={`${styles.modeButton} ${
-                    mode === "finance" ? styles.modeButtonActive : ""
-                  }`}
-                  onClick={() => setMode("finance")}
-                >
-                  Finance mode
-                </button>
-
-                <button
-                  type="button"
-                  className={`${styles.modeButton} ${
-                    mode === "travel" ? styles.modeButtonActive : ""
-                  }`}
-                  onClick={() => setMode("travel")}
-                >
-                  Travel advisory mode
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.addTicker}>
-              <input
-                type="text"
-                value={tickerInput}
-                onChange={(e) => setTickerInput(e.target.value)}
-                placeholder="Add ticker e.g. DAL"
-              />
-              <button onClick={() => handleAddTicker()} disabled={loadingTicker}>
-                {loadingTicker ? "Adding..." : "Add"}
-              </button>
-            </div>
+        <main className={styles.main}>
+          <div className={styles.pageHeader}>
+            <h1>{modeConfig.pageTitle}</h1>
+            <p className={styles.subtitle}>{modeConfig.subtitle}</p>
           </div>
 
           <section className={styles.hero}>
@@ -523,28 +435,29 @@ export default function OutbreakFinancialAnalysis() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p>No outbreak data loaded yet.</p>
+              <p className={styles.emptyState}>
+                No outbreak data loaded yet. Use the filters on the left to get started.
+              </p>
             )}
           </section>
 
           <section className={styles.panel}>
             <h2>{modeConfig.categoryTitle}</h2>
             <p className={styles.subtitle}>
-              {mode === "travel"
-                ? "Select a category to explore how different parts of travel respond to outbreaks."
-                : "Select a category to explore how different industries respond to outbreaks."}
+              Select a category to explore how different parts of travel respond to outbreaks.
             </p>
 
             <SectorTickerPicker
               modeConfig={modeConfig}
               selectedTickers={selectedTickers}
               onAddTicker={handleAddTicker}
+              loadingTicker={loadingTicker}
             />
           </section>
 
           <section className={styles.panel}>
             <h2>{modeConfig.selectedTitle}</h2>
-            <div className={styles.tickerList}>
+            <div className={styles.selectedBar}>
               {selectedTickers.length ? (
                 selectedTickers.map((ticker) => (
                   <span key={ticker} className={styles.tickerChip}>
@@ -558,39 +471,8 @@ export default function OutbreakFinancialAnalysis() {
                   </span>
                 ))
               ) : (
-                "None yet"
+                <span className={styles.emptyState}>None yet</span>
               )}
-            </div>
-          </section>
-
-          <section className={styles.panel}>
-            <h2>{modeConfig.comparisonTitle}</h2>
-
-            <div className={styles.tableWrap}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Period</th>
-                    <th>Cases</th>
-                    {selectedTickers.map((ticker) => (
-                      <th key={ticker}>{ticker} Close</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableRows.map((row) => (
-                    <tr key={row.period}>
-                      <td>{row.period}</td>
-                      <td>{row.cases}</td>
-                      {selectedTickers.map((ticker) => (
-                        <td key={ticker}>
-                          {row[ticker] != null ? row[ticker].toFixed(2) : "-"}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </section>
 
@@ -603,71 +485,38 @@ export default function OutbreakFinancialAnalysis() {
             );
             const currentTrend = getLatestCasesTrend(comparisonRows);
 
-            const insight =
-              mode === "travel"
-                ? generateTravelInsightCard({
-                    ticker,
-                    trend: currentTrend,
-                    correlation: bestCorr,
-                    lag: bestLag,
-                    interval: filters.interval,
-                    category: tickerCategoryMap[ticker] || "Airlines",
-                  })
-                : generateFinanceInsightCard({
-                    ticker,
-                    trend: currentTrend,
-                    correlation: bestCorr,
-                    lag: bestLag,
-                    interval: filters.interval,
-                  });
+            const insight = generateTravelInsightCard({
+              ticker,
+              trend: currentTrend,
+              correlation: bestCorr,
+              lag: bestLag,
+              interval: filters.interval,
+              category: tickerCategoryMap[ticker] || "Airlines",
+            });
 
             return (
               <section key={ticker} className={styles.panel}>
-                <h2>{ticker} vs outbreak cases</h2>
+                <h2 className={styles.tickerTitle}>{ticker} — Travel Impact</h2>
 
-                <p className={styles.correlation}>
-                  Current lag ({lag}): {corr?.toFixed(2) || "N/A"}
-                </p>
-
-                <p>
-                  Best lag: {bestLag ?? "N/A"} ({bestCorr?.toFixed(2) || "N/A"})
-                </p>
-
-                <div
-                  className={`${styles.insightCard} ${
-                    styles[insight.level.toLowerCase()]
-                  }`}
-                >
-                  {/* Header */}
-                  <div className={styles.header}>
+                <div className={styles.insightCard}>
+                  <div className={styles.insightHeader}>
                     <h3 className={styles.title}>✈️ {insight.title}</h3>
-                    <span className={styles.badge}>
-                      {insight.level} impact
-                    </span>
                   </div>
 
-                  {/* Summary */}
                   <p className={styles.summary}>{insight.summary}</p>
 
-                  {/* Key info grid */}
                   <div className={styles.metaGrid}>
-                    <div>
+                    <div className={styles.metaItem}>
                       <span className={styles.metaLabel}>📊 Indicator</span>
-                      <p>{insight.indicator}</p>
+                      <p className={styles.metaValue}>{insight.indicator}</p>
                     </div>
 
-                    <div>
-                      <span className={styles.metaLabel}>⏱ Typical delay</span>
-                      <p>{insight.timing}</p>
-                    </div>
-
-                    <div>
+                    <div className={styles.metaItem}>
                       <span className={styles.metaLabel}>📉 Outbreak trend</span>
-                      <p>{insight.trendText}</p>
+                      <p className={styles.metaValue}>{insight.trendText}</p>
                     </div>
                   </div>
 
-                  {/* Traveller guidance */}
                   <div className={styles.guidance}>
                     <strong>🧳 What this means for travellers</strong>
 
@@ -760,6 +609,37 @@ export default function OutbreakFinancialAnalysis() {
               </section>
             );
           })}
+
+          <section className={styles.panel}>
+            <h2>{modeConfig.comparisonTitle}</h2>
+
+            <div className={styles.tableWrap}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Cases</th>
+                    {selectedTickers.map((ticker) => (
+                      <th key={ticker}>{ticker} Close</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map((row) => (
+                    <tr key={row.period}>
+                      <td>{row.period}</td>
+                      <td>{row.cases}</td>
+                      {selectedTickers.map((ticker) => (
+                        <td key={ticker}>
+                          {row[ticker] != null ? row[ticker].toFixed(2) : "-"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </main>
       </div>
     </>

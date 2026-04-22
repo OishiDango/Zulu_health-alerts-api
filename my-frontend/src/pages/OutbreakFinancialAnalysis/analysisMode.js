@@ -58,7 +58,6 @@ export const MODE_CONFIG = {
         { label: "United", ticker: "UAL" },
       ],
       Tourism: [
-        { label: "Airbnb", ticker: "ABNB" },
         { label: "Booking", ticker: "BKNG" },
         { label: "Expedia", ticker: "EXPE" },
       ],
