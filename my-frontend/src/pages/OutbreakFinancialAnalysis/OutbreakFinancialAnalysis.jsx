@@ -168,7 +168,7 @@ export default function OutbreakFinancialAnalysis() {
   const [filters, setFilters] = useState({
     from: "2026-01-01",
     to: new Date().toISOString().slice(0, 10),
-    interval: "month",
+    interval: "week",
     disease: [],
     species: [],
     location: {
@@ -184,7 +184,7 @@ export default function OutbreakFinancialAnalysis() {
   const [baseRows, setBaseRows] = useState([]);
   const [comparisonRows, setComparisonRows] = useState([]);
   const [loadingCases, setLoadingCases] = useState(false);
-  const [loadingTicker, setLoadingTicker] = useState(false);
+  const [loadingTicker, setLoadingTicker] = useState(null);
   const [error, setError] = useState("");
 
   const tableRows = useMemo(() => {
@@ -237,7 +237,7 @@ export default function OutbreakFinancialAnalysis() {
     }
 
     try {
-      setLoadingTicker(true);
+      setLoadingTicker(ticker);
       setError("");
 
       const raw = await fetchFinancialData({
@@ -256,7 +256,7 @@ export default function OutbreakFinancialAnalysis() {
     } catch (err) {
       setError(err.message || "Failed to add ticker");
     } finally {
-      setLoadingTicker(false);
+      setLoadingTicker(null);
     }
   };
 
@@ -399,7 +399,7 @@ export default function OutbreakFinancialAnalysis() {
                 onChange={(e) => setTickerInput(e.target.value)}
                 placeholder="Add ticker e.g. DAL"
               />
-              <button onClick={() => handleAddTicker()} disabled={loadingTicker}>
+              <button onClick={() => handleAddTicker()} disabled={loadingTicker !== null}>
                 {loadingTicker ? "Adding..." : "Add"}
               </button>
             </div>
@@ -472,6 +472,7 @@ export default function OutbreakFinancialAnalysis() {
               modeConfig={modeConfig}
               selectedTickers={selectedTickers}
               onAddTicker={handleAddTicker}
+              loadingTicker={loadingTicker}
             />
           </section>
 

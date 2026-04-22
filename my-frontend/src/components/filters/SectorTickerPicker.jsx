@@ -5,6 +5,7 @@ export default function SectorTickerPicker({
   modeConfig,
   selectedTickers = [],
   onAddTicker,
+  loadingTicker,
 }) {
   const categories = modeConfig?.categories ?? {};
 
@@ -40,6 +41,7 @@ export default function SectorTickerPicker({
       <div className={styles.list}>
         {activeItems.map((item) => {
           const alreadyAdded = selectedTickers.includes(item.ticker);
+          const isLoading = loadingTicker === item.ticker;
 
           return (
             <div key={item.ticker} className={styles.row}>
@@ -54,9 +56,9 @@ export default function SectorTickerPicker({
                 type="button"
                 className={styles.addBtn}
                 onClick={() => onAddTicker(item.ticker)}
-                disabled={alreadyAdded}
+                disabled={alreadyAdded || isLoading}
               >
-                {alreadyAdded ? "Added" : "Add"}
+                {isLoading ? "Adding..." : alreadyAdded ? "Added" : "Add"}
               </button>
             </div>
           );
