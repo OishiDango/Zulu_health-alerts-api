@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   getTimeseriesStats,
   normaliseAlertTimeseries,
@@ -57,6 +57,79 @@ function addTickerToRows(rows, stockRows, ticker) {
   }));
 }
 
+function calculateLagCorrelation(rows, ticker, lag = 0) {
+  const pairs = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const j = i + lag;
+    if (j >= rows.length) break;
+
+    const x = rows[i].cases;
+    const y = rows[j][ticker];
+
+    if (x != null && y != null) {
+      pairs.push({ x, y });
+    }
+  }
+
+  if (pairs.length < 2) return null;
+
+  const n = pairs.length;
+  const meanX = pairs.reduce((a, p) => a + p.x, 0) / n;
+  const meanY = pairs.reduce((a, p) => a + p.y, 0) / n;
+
+  let num = 0;
+  let dx = 0;
+  let dy = 0;
+
+  for (const p of pairs) {
+    const vx = p.x - meanX;
+    const vy = p.y - meanY;
+    num += vx * vy;
+    dx += vx * vx;
+    dy += vy * vy;
+  }
+
+  const denom = Math.sqrt(dx * dy);
+  if (denom === 0) return null;
+
+  return num / denom;
+}
+
+function getCorrelationLabel(value) {
+  if (value == null) return "Insufficient data";
+
+  const abs = Math.abs(value);
+  if (abs > 0.7) return "Strong";
+  if (abs > 0.4) return "Moderate";
+  if (abs > 0.2) return "Weak";
+  return "Very weak";
+}
+
+function getMaxLag(interval) {
+  if (interval === "month") return 0;
+  if (interval === "week") return 2;
+  return 14;
+}
+
+function findBestLag(rows, ticker, maxLag = 8) {
+  let bestLag = null;
+  let bestCorr = null;
+
+  for (let lag = 0; lag <= maxLag; lag++) {
+    const corr = calculateLagCorrelation(rows, ticker, lag);
+
+    if (corr == null) continue;
+
+    if (bestCorr == null || Math.abs(corr) > Math.abs(bestCorr)) {
+      bestCorr = corr;
+      bestLag = lag;
+    }
+  }
+
+  return { bestLag, bestCorr };
+}
+
 function getLatestCasesTrend(rows) {
   const validRows = rows.filter((row) => row.cases != null);
 
@@ -70,8 +143,27 @@ function getLatestCasesTrend(rows) {
   return "flat";
 }
 
+function getImpactStrength(correlation) {
+  const abs = Math.abs(correlation ?? 0);
+  if (abs >= 0.6) return "High";
+  if (abs >= 0.3) return "Moderate";
+  return "Low";
+}
+
+function formatLagForTravel(lag, interval) {
+  if (lag == null) return "No clear delay";
+  if (lag === 0) {
+    if (interval === "month") return "within the same month";
+    if (interval === "week") return "within the same week";
+    return "within the same day";
+  }
+  return `about ${lag} ${interval}${lag > 1 ? "s" : ""} later`;
+}
+
 export default function OutbreakFinancialAnalysis() {
   const modeConfig = MODE_CONFIG.travel;
+
+  const [lag, setLag] = useState(0);
 
   const [filters, setFilters] = useState({
     from: "2026-01-01",
@@ -85,12 +177,19 @@ export default function OutbreakFinancialAnalysis() {
     },
   });
 
+  const maxLag = getMaxLag(filters.interval);
+
+  const [tickerInput, setTickerInput] = useState("");
   const [selectedTickers, setSelectedTickers] = useState([]);
   const [baseRows, setBaseRows] = useState([]);
   const [comparisonRows, setComparisonRows] = useState([]);
   const [loadingCases, setLoadingCases] = useState(false);
   const [loadingTicker, setLoadingTicker] = useState(null);
   const [error, setError] = useState("");
+
+  const tableRows = useMemo(() => {
+    return comparisonRows.length ? comparisonRows : baseRows;
+  }, [comparisonRows, baseRows]);
 
   const handleLoadCases = async () => {
     try {
@@ -113,6 +212,7 @@ export default function OutbreakFinancialAnalysis() {
       setBaseRows(rows);
       setComparisonRows(rows);
       setSelectedTickers([]);
+      setTickerInput("");
     } catch (err) {
       setError(err.message || "Failed to load outbreak data");
     } finally {
@@ -121,7 +221,12 @@ export default function OutbreakFinancialAnalysis() {
   };
 
   const handleAddTicker = async (tickerOverride = "") => {
-    const ticker = tickerOverride.trim().toUpperCase();
+    const sourceTicker =
+      typeof tickerOverride === "string" && tickerOverride
+        ? tickerOverride
+        : tickerInput;
+
+    const ticker = sourceTicker.trim().toUpperCase();
 
     if (!ticker) return;
     if (selectedTickers.includes(ticker)) return;
@@ -147,6 +252,7 @@ export default function OutbreakFinancialAnalysis() {
         addTickerToRows(prevRows, stockRows, ticker)
       );
       setSelectedTickers((prev) => [...prev, ticker]);
+      setTickerInput("");
     } catch (err) {
       setError(err.message || "Failed to add ticker");
     } finally {
@@ -292,7 +398,7 @@ export default function OutbreakFinancialAnalysis() {
             </div>
           </section>
 
-          {error && <p className={styles.error}>{error}</p>}
+          {error ? <p className={styles.error}>{error}</p> : null}
 
           <section className={styles.panel}>
             <h2>Outbreak Trend Over Time</h2>
@@ -349,29 +455,41 @@ export default function OutbreakFinancialAnalysis() {
             />
           </section>
 
-          {selectedTickers.length > 0 && (
+          <section className={styles.panel}>
+            <h2>{modeConfig.selectedTitle}</h2>
             <div className={styles.selectedBar}>
-              <span className={styles.selectedLabel}>Showing:</span>
-              {selectedTickers.map((ticker) => (
-                <span key={ticker} className={styles.tickerChip}>
-                  {ticker}
-                  <button
-                    onClick={() => handleRemoveTicker(ticker)}
-                    className={styles.removeBtn}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
+              {selectedTickers.length ? (
+                selectedTickers.map((ticker) => (
+                  <span key={ticker} className={styles.tickerChip}>
+                    {ticker}
+                    <button
+                      onClick={() => handleRemoveTicker(ticker)}
+                      className={styles.removeBtn}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className={styles.emptyState}>None yet</span>
+              )}
             </div>
-          )}
+          </section>
 
           {selectedTickers.map((ticker) => {
+            const corr = calculateLagCorrelation(comparisonRows, ticker, lag);
+            const { bestLag, bestCorr } = findBestLag(
+              comparisonRows,
+              ticker,
+              maxLag
+            );
             const currentTrend = getLatestCasesTrend(comparisonRows);
 
             const insight = generateTravelInsightCard({
               ticker,
               trend: currentTrend,
+              correlation: bestCorr,
+              lag: bestLag,
               interval: filters.interval,
               category: tickerCategoryMap[ticker] || "Airlines",
             });
@@ -401,7 +519,9 @@ export default function OutbreakFinancialAnalysis() {
 
                   <div className={styles.guidance}>
                     <strong>🧳 What this means for travellers</strong>
+
                     <p className={styles.message}>{insight.travellerMessage}</p>
+
                     <ul>
                       {insight.actions?.map((item, i) => (
                         <li key={i}>{item}</li>
@@ -489,6 +609,37 @@ export default function OutbreakFinancialAnalysis() {
               </section>
             );
           })}
+
+          <section className={styles.panel}>
+            <h2>{modeConfig.comparisonTitle}</h2>
+
+            <div className={styles.tableWrap}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Cases</th>
+                    {selectedTickers.map((ticker) => (
+                      <th key={ticker}>{ticker} Close</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map((row) => (
+                    <tr key={row.period}>
+                      <td>{row.period}</td>
+                      <td>{row.cases}</td>
+                      {selectedTickers.map((ticker) => (
+                        <td key={ticker}>
+                          {row[ticker] != null ? row[ticker].toFixed(2) : "-"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </main>
       </div>
     </>
