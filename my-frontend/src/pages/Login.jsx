@@ -83,7 +83,7 @@ function Login() {
               />
             </div>
 
-            {error && <p className={styles.error}>{error}</p>}
+            {error && <p className={styles.error} role="alert">{error}</p>}
 
             <button
               type="submit"
